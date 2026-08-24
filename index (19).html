@@ -1,0 +1,1754 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PharmaTrack — Pharmacy Management</title>
+<style>
+:root{--navy:#12345b;--blue:#1d67b1;--light:#f4f7fb;--green:#138a5b;--red:#c63d3d;--amber:#c98600;--text:#1f2937;--muted:#6b7280;--border:#dfe5ec}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--light);color:var(--text)}
+header{height:64px;background:var(--navy);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:5}
+.brand{font-size:21px;font-weight:800}.brand span{color:#6fc5ff}.header-right{font-size:13px;opacity:.9}
+.layout{display:flex;min-height:calc(100vh - 64px)}aside{width:230px;background:#fff;border-right:1px solid var(--border);padding:16px 10px;position:sticky;top:64px;height:calc(100vh - 64px)}
+nav button{width:100%;padding:12px 14px;border:0;background:transparent;text-align:left;border-radius:9px;margin:3px 0;cursor:pointer;color:#405067;font-size:14px}nav button.active,nav button:hover{background:#eaf3fc;color:var(--blue);font-weight:700}
+nav button.qa-nav-btn{background:linear-gradient(120deg,#16a34a,#0d9488);color:#fff;font-weight:800;margin-bottom:10px}
+nav button.qa-nav-btn:hover{background:linear-gradient(120deg,#15803d,#0f766e);color:#fff}
+main{flex:1;padding:22px;max-width:1500px}.page{display:none}.page.active{display:block}.title{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.title h1{margin:0;font-size:25px}.sub{color:var(--muted);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:17px;box-shadow:0 2px 8px #122a4408}.card .label{color:var(--muted);font-size:12px}.metric{font-size:25px;font-weight:800;margin-top:7px}.green{color:var(--green)}.red{color:var(--red)}.amber{color:var(--amber)}
+.panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:17px;margin-bottom:16px}.panel h3{margin:0 0 14px;font-size:16px}
+.welcome-banner{position:relative;overflow:hidden;border-radius:14px;padding:20px 24px 24px;margin-bottom:16px;color:#fff;background:linear-gradient(120deg,#0d3b2e 0%,#136a52 45%,#1d3f7a 100%)}
+.welcome-banner .wb-toprow{display:flex;justify-content:space-between;align-items:flex-start}
+.welcome-banner::after{content:'';position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,#16a34a,#0ea5e9,#f59e0b,#c026d3,#ec4899)}
+.welcome-banner .wb-top{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;opacity:.75}
+.welcome-banner .wb-name{font-size:22px;font-weight:800;margin-top:4px}
+.welcome-banner .wb-right{text-align:right;font-size:13px;font-weight:700;line-height:1.5}
+.welcome-banner .wb-right div:last-child{font-weight:400;opacity:.85}
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0d3b2e 0%,#12345b 55%,#1d3f7a 100%);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.login-card{background:#fff;border-radius:16px;padding:34px 32px;width:min(380px,100%);box-shadow:0 20px 50px #0004}
+.login-card .brand{color:var(--navy);font-size:24px;text-align:center;margin-bottom:4px}
+.login-card .brand span{color:var(--blue)}
+.login-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px}
+.login-error{background:#feecec;color:var(--red);font-size:12.5px;padding:9px 11px;border-radius:8px;margin-bottom:12px;display:none}
+.login-error.show{display:block}
+.login-hint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px}
+.header-user{display:flex;align-items:center;gap:12px}
+.logout-btn{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
+.logout-btn:hover{background:rgba(255,255,255,.12)}
+.qa-fab{position:fixed;right:0;top:50%;transform:translateY(-50%);background:linear-gradient(180deg,#22c55e,#0d9488);color:#fff;border:0;border-radius:12px 0 0 12px;box-shadow:-3px 3px 14px #0003;cursor:pointer;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:16px 9px;min-height:150px}
+.qa-fab.show{display:flex}
+.qa-fab.qa-fab-hidden{display:none}
+.qa-fab .qa-fab-icon{font-size:16px}
+.qa-fab .qa-fab-text{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12.5px;font-weight:700;letter-spacing:.6px}
+.qa-backdrop{position:fixed;inset:0;background:#0006;display:none;z-index:41}
+.qa-backdrop.show{display:block}
+.qa-drawer{position:fixed;top:0;right:-320px;width:min(320px,88vw);height:100vh;background:#faf6ea;box-shadow:-4px 0 20px #0003;z-index:42;transition:right .25s ease;display:flex;flex-direction:column}
+.qa-drawer.show{right:0}
+.qa-drawer-header{background:linear-gradient(120deg,#0d3b2e,#136a52);color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:16px}
+.qa-drawer-header button{background:transparent;border:0;color:#fff;font-size:19px;cursor:pointer;line-height:1}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px;overflow:auto}
+.qa-tile{background:#fff;border-radius:14px;padding:16px 8px;text-align:center;cursor:pointer;border:1px solid var(--border);box-shadow:0 2px 6px #0000000d;transition:transform .15s,box-shadow .15s}
+.qa-tile:hover{transform:translateY(-2px);box-shadow:0 6px 14px #00000014}
+.qa-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 8px;color:#fff}
+.qa-label{font-size:12.5px;font-weight:700;color:#344154}
+.wb-verse{margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.25);overflow:hidden;white-space:nowrap;width:100%}
+.wb-verse span{display:inline-block;transform:translateX(-100%);animation:verseScrollLight 18s linear infinite;font-style:italic;font-size:12.5px;opacity:.92}
+@keyframes verseScrollLight{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.summary-panel{background:#fbf8ee;border:1px solid #e7e0cc;border-left:4px solid var(--green);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.summary-panel h3{margin:0 0 10px;font-size:15px}
+.summary-panel p{margin:0 0 10px;line-height:1.65;font-size:14px}
+.summary-panel p:last-child{margin-bottom:0}
+.overview-toggle{display:flex;align-items:center;gap:7px;font-weight:800;letter-spacing:.4px;cursor:pointer;margin:4px 0 14px;user-select:none;font-size:13px;color:#1f2937;border-bottom:1px solid var(--border);padding-bottom:10px}
+.overview-toggle .chev{display:inline-block;transition:transform .2s}
+.overview-toggle.collapsed .chev{transform:rotate(-90deg)}
+.autoprint-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.autoprint-check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#344154;margin:0;cursor:pointer}
+.autoprint-check input{width:16px;height:16px;accent-color:var(--blue);flex:none}
+.autoprint-row select{width:auto;max-width:210px;font-size:13px}
+.btn.pill{border-radius:999px;padding:9px 16px;background:#fff;color:#344154;border:1px solid var(--border);font-weight:700}
+.btn.pill.pill-blue{background:#eaf3fc;color:var(--blue);border-color:#cfe3f7}
+.btn.pill:hover{filter:brightness(.97)}
+.log-table{width:100%;border-collapse:collapse;font-size:13px;min-width:1100px}
+.log-table thead th{background:#123c2e;color:#fff;text-align:left;padding:12px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.log-table td{padding:12px 10px;border-bottom:1px solid #edf0f4;vertical-align:top}
+.log-table tbody tr:hover{background:#faf9f2}
+.log-actions{white-space:nowrap}
+.log-link{font-size:12.5px;font-weight:700;text-decoration:none;margin-right:10px;display:inline-block}
+.log-link-blue{color:var(--blue)}
+.log-link-green{color:var(--green)}
+.log-link-red{color:var(--red)}
+.log-link:hover{text-decoration:underline}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+input,select,textarea{width:100%;padding:10px 11px;border:1px solid #ccd5df;border-radius:8px;background:white;font:inherit}label{display:block;font-size:12px;font-weight:700;margin:0 0 5px;color:#4b5563}.field{margin-bottom:11px}
+button.primary,.btn{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:700}.primary{background:var(--blue);color:white}.secondary{background:#eef2f6;color:#344154}.danger{background:#feecec;color:var(--red)}.success{background:#e8f7f0;color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #edf0f4}th{color:#657287;font-size:11px;text-transform:uppercase}.badge{display:inline-block;padding:4px 7px;border-radius:20px;font-size:11px;font-weight:700}.b-low{background:#fff0d5;color:#996100}.b-ok{background:#e8f7f0;color:#13754f}.b-out{background:#feecec;color:#b32d2d}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}.toolbar input{max-width:320px}
+.cart{border:1px solid var(--border);border-radius:10px;overflow:hidden}.cart-total{display:flex;justify-content:space-between;font-weight:800;font-size:19px;padding:14px;background:#f8fafc}
+.kpi{font-size:12px;color:var(--muted)}.empty{padding:30px;text-align:center;color:var(--muted)}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:20}.modal.show{display:flex}.modalbox{background:white;border-radius:14px;width:min(720px,94vw);max-height:90vh;overflow:auto;padding:20px}
+.modal-card{background:white;border-radius:14px;width:min(560px,94vw);max-height:90vh;overflow:auto;padding:20px}
+.thumb{width:44px;height:44px;object-fit:cover;border-radius:7px;border:1px solid var(--border);vertical-align:middle}.noimg{width:44px;height:44px;border-radius:7px;border:1px dashed #b8c2cf;display:inline-flex;align-items:center;justify-content:center;color:#7b8794;font-size:18px;vertical-align:middle}.receipt{font-family:Arial;max-width:760px;margin:auto;padding:25px}.receipt h1{text-align:center;margin:0 0 3px}.receipt .center{text-align:center}.receipt table{margin-top:18px}.receipt .total{text-align:right;font-size:18px;font-weight:800;margin-top:15px}
+@media(max-width:900px){aside{width:65px}nav button{font-size:0;text-align:center}.cards{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}main{padding:12px}}
+@media(max-width:560px){.cards{grid-template-columns:1fr}.header-right{display:none}}
+@media print{header,aside,.no-print{display:none!important}main{padding:0}.page{display:none!important}#printArea{display:block!important}.receipt{max-width:none}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+.print-preview-sheet{background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.18);padding:8mm;box-sizing:border-box}
+.preview-80{width:80mm}.preview-58{width:58mm}.preview-a4{width:210mm;min-height:297mm}.preview-a5{width:148mm;min-height:210mm}.preview-letter{width:216mm;min-height:279mm}
+.pdf-note{font-size:12px;color:#666;margin-top:8px}
+@media print{
+  body *{visibility:hidden!important}
+  #printArea,#printArea *{visibility:visible!important}
+  #printArea{position:absolute;left:0;top:0;margin:0;padding:0}
+}
+
+/* Print/receipt layout classes used by printSale, printInventoryReport and printSalesSummary */
+.print-thermal-80,.print-thermal-58{font-family:Arial,sans-serif;margin:0 auto;font-size:12px}
+.print-thermal-80{width:80mm}.print-thermal-58{width:58mm;font-size:11px}
+.print-a4,.print-a5,.print-letter{font-family:Arial,sans-serif;margin:0 auto;padding:10mm;box-sizing:border-box}
+.print-a4{width:210mm}.print-a5{width:148mm}.print-letter{width:216mm}
+.print-thermal-80 table,.print-thermal-58 table,.print-a4 table,.print-a5 table,.print-letter table{width:100%;border-collapse:collapse;font-size:inherit;margin-top:8px}
+.print-thermal-80 th,.print-thermal-58 th,.print-a4 th,.print-a5 th,.print-letter th,
+.print-thermal-80 td,.print-thermal-58 td,.print-a4 td,.print-a5 td,.print-letter td{padding:4px 6px;border-bottom:1px solid #ddd;text-align:left}
+.print-center{text-align:center}
+.print-line{border-top:1px dashed #999;margin:8px 0}
+.print-row{display:flex;justify-content:space-between;gap:8px}
+.print-total{font-weight:800;font-size:14px;margin-top:6px}
+.verse-marquee{overflow:hidden;white-space:nowrap;border-top:1px dashed #999;border-bottom:1px dashed #999;padding:6px 0;margin:10px 0;position:relative;width:100%}
+.verse-marquee span{display:inline-block;transform:translateX(-100%);animation:verseScroll 14s linear infinite;font-style:italic}
+@keyframes verseScroll{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.sig-row{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-top:22px}
+.sig-block{flex:1;text-align:center}
+.sig-block img{max-height:70px;max-width:150px;display:block;margin:0 auto 4px}
+.sig-line{border-top:1px solid #333;margin-top:34px;padding-top:4px;font-size:11.5px}
+.sig-block .sig-name{font-weight:700;font-size:12.5px}
+.sig-block .sig-title{font-size:11px;color:#555}
+</style>
+
+</head>
+<body>
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="brand">Pharma<span>Track</span></div>
+    <div class="login-sub">Pharmacy Management System</div>
+    <div id="loginError" class="login-error">Incorrect username or password.</div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="field"><label>Username</label><input id="loginUser" autocomplete="username" required></div>
+      <div class="field"><label>Password</label><input id="loginPass" type="password" autocomplete="current-password" required></div>
+      <button type="submit" class="primary" style="width:100%;margin-top:6px">Log In</button>
+    </form>
+    <div class="login-hint">Default Manager login: <b>admin</b> / <b>admin123</b>. Add Sales Personnel accounts from Settings → Staff Accounts after logging in.</div>
+  </div>
+</div>
+<header style="display:none" id="appHeader"><div class="brand">Pharma<span>Track</span></div>
+<div class="header-user">
+<div class="header-right">Pharmacy Management System • GHS</div>
+<span id="headerUserName" style="font-size:13px;font-weight:700"></span>
+<button class="logout-btn" onclick="doLogout()">⏻ Log Out</button>
+</div>
+</header>
+<div class="layout" id="appLayout" style="display:none">
+<aside><nav id="nav">
+<button data-page="dashboard" class="active">📊 Dashboard</button>
+<button data-action="quickaccess" class="qa-nav-btn">⚡ Quick Access</button>
+<button data-page="inventory">📦 Inventory</button>
+<button data-page="salesLog">📋 Sales Log</button>
+<button data-page="invoicesPage">🧾 Invoices</button>
+<button data-page="sales">🛒 Sales / POS</button>
+<button data-page="expenses">💳 Expenses</button>
+<button data-page="customers">👥 Customers</button>
+<button data-page="reports" data-require-manager>📈 Reports</button>
+<button data-page="settings" data-require-manager>⚙️ Settings</button>
+<button data-page="help">❓ Help</button>
+</nav></aside>
+<main>
+<section id="dashboard" class="page active">
+
+<div class="welcome-banner">
+  <div class="wb-toprow">
+  <div>
+    <div class="wb-top">Welcome back</div>
+    <div class="wb-name" id="wbName">admin</div>
+  </div>
+  <div class="wb-right">
+    <div id="wbDate"></div>
+    <div id="wbLocation"></div>
+  </div>
+  </div>
+  <div class="wb-verse" id="wbVerseWrap"><span id="wbVerse"></span></div>
+</div>
+
+<div class="summary-panel">
+  <h3>📝 Overall Summary</h3>
+  <div id="summaryText"></div>
+</div>
+
+<div class="summary-panel" style="background:#eef7fb;border-color:#cfe6f2;border-left-color:var(--blue)">
+  <h3>💡 Daily Health Tip</h3>
+  <p id="healthTipText"></p>
+</div>
+
+<div class="overview-toggle" id="overviewToggleBtn" onclick="toggleOverview()"><span class="chev">▾</span> OVERVIEW</div>
+
+<div id="overviewBody">
+<div class="title" style="margin-top:0"><div><h1>Dashboard</h1><div class="sub">Today's pharmacy overview</div></div><button class="primary" onclick="go('sales')">+ New Sale</button></div>
+<div class="cards">
+<div class="card"><div class="label">TODAY'S SALES</div><div class="metric green" id="dashSales">GHS 0.00</div></div>
+<div class="card"><div class="label">TRANSACTIONS</div><div class="metric" id="dashTx">0</div></div>
+<div class="card"><div class="label">LOW STOCK ITEMS</div><div class="metric amber" id="dashLow">0</div></div>
+<div class="card"><div class="label">EXPENSES TODAY</div><div class="metric red" id="dashExp">GHS 0.00</div></div>
+</div>
+<div class="grid2"><div class="panel"><h3>Low Stock Alerts</h3><div id="lowStock"></div></div><div class="panel"><h3>Recent Sales</h3><div id="recentSales"></div></div></div>
+</div>
+</section>
+
+
+<section id="stockCharts" class="panel" style="margin-top:16px">
+  <h3>Stock Value &amp; Top Sellers</h3>
+  <div class="grid2">
+    <div class="panel" style="margin:0">
+      <h3>Stock Value by Category</h3>
+      <div style="height:320px"><canvas id="stockCategoryChart"></canvas></div>
+    </div>
+    <div class="panel" style="margin:0">
+      <h3>Top Selling Items (units)</h3>
+      <div style="height:320px"><canvas id="topSellersChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<section id="inventory" class="page">
+<div class="title"><div><h1>Inventory</h1><div class="sub">Track medicines, quantities, prices and live stock value</div></div><div style="display:flex;gap:8px"><button class="secondary btn" onclick="printInventoryReport()">🖨 Print Inventory Report</button><button class="primary" data-require-manager onclick="openProduct()">+ Add Medicine</button></div></div>
+<div class="panel">
+<h3>📊 Inventory Report</h3>
+<p class="sub">Live report from your current inventory. Values update automatically when items, stock or prices change.</p>
+<div class="cards" style="margin:12px 0 0">
+<div class="card"><div class="label">TOTAL UNITS</div><div class="metric" id="invReportUnits">0</div></div>
+<div class="card"><div class="label">PRODUCTS</div><div class="metric" id="invReportProducts">0</div></div>
+<div class="card"><div class="label">LOW STOCK</div><div class="metric amber" id="invReportLow">0</div></div>
+<div class="card"><div class="label">OUT OF STOCK</div><div class="metric red" id="invReportOut">0</div></div>
+</div>
+<div class="cards" style="margin:12px 0 0">
+<div class="card"><div class="label">STOCK-IN COST</div><div class="metric" id="invReportCost">GHS 0.00</div></div>
+<div class="card"><div class="label">SELLING VALUE</div><div class="metric green" id="invReportSelling">GHS 0.00</div></div>
+<div class="card"><div class="label">POTENTIAL PROFIT</div><div class="metric green" id="invReportProfit">GHS 0.00</div></div>
+<div class="card"><div class="label">CATEGORIES</div><div class="metric" id="invReportCategories">0</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+<div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px"><span>Stock-In Cost</span><span id="invCostLabel">GHS 0.00</span></div><div style="height:28px;background:#eef2f6;border-radius:7px;overflow:hidden"><div id="invCostBar" style="height:100%;width:0%;background:#f05a00;border-radius:7px;transition:width .3s"></div></div></div>
+<div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px"><span>Potential Selling Value</span><span id="invSellingLabel">GHS 0.00</span></div><div style="height:28px;background:#eef2f6;border-radius:7px;overflow:hidden"><div id="invSellingBar" style="height:100%;width:0%;background:#159b6b;border-radius:7px;transition:width .3s"></div></div></div>
+</div>
+</div>
+<div class="panel">
+<div class="toolbar">
+<input id="invSearch" placeholder="Search items..." oninput="renderInventory()">
+<button class="primary btn" data-require-manager onclick="openProduct()">+ Add Item</button>
+<button class="secondary btn" data-require-manager onclick="clearAllItems()">🗑 Clear All Items</button>
+<button class="secondary btn" data-require-manager onclick="restoreDefaultItems()">↻ Restore to Default</button>
+</div>
+<div id="inventoryTable"></div>
+</div>
+</section>
+
+<section id="sales" class="page">
+<div class="title"><div><h1>Sales / POS</h1><div class="sub">Create sales, invoices and receipts</div></div></div>
+<div class="grid2">
+<div class="panel"><h3>Add Items</h3><div class="field"><label>Medicine</label><select id="saleProduct"></select></div><div class="grid2"><div class="field"><label>Quantity</label><input id="saleQty" type="number" min="1" value="1"></div><div class="field"><label>Customer</label><input id="saleCustomer" placeholder="Walk-in customer"></div></div><button class="primary" onclick="addToCart()">Add to Cart</button></div>
+<div class="panel"><h3>Current Sale</h3><div id="cartBox"></div><div class="cart-total"><span>Total</span><span id="cartTotal">GHS 0.00</span></div>
+<div class="autoprint-row"><label class="autoprint-check"><input id="saleAutoPrint" type="checkbox" checked> Generate &amp; print receipt after logging</label><select id="saleReceiptFormat"><option value="80mm:receipt">80mm Receipt (Thermal)</option><option value="58mm:receipt">58mm Receipt (Thermal)</option><option value="A5:invoice">A5 Invoice</option><option value="A4:invoice">A4 Invoice</option></select></div>
+<div style="display:flex;gap:8px;margin-top:12px"><button class="success btn" onclick="logSale()">+ Add to log</button><button class="secondary btn" onclick="cart=[];renderCart()">Clear</button></div></div>
+</div>
+<div class="panel"><h3>Sales History</h3><div id="salesTable"></div></div>
+</section>
+
+
+<section id="salesLog" class="page">
+<div class="title">
+  <div><h1>Sales Log</h1><div class="sub">Detailed record of every sale, invoice, customer and item sold</div></div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <select id="printPaperSize" title="Print paper size">
+      <option value="80mm">80mm Thermal Receipt</option>
+      <option value="58mm">58mm Thermal Receipt</option>
+      <option value="A4">A4</option>
+      <option value="A5">A5</option>
+      <option value="Letter">Letter</option>
+    </select>
+    <button class="primary" onclick="printSalesSummary()">Print Summary Report</button>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card"><div class="label">TOTAL SALES</div><div class="metric green" id="slTotalSales">GHS 0.00</div></div>
+  <div class="card"><div class="label">INVOICES</div><div class="metric" id="slInvoices">0</div></div>
+  <div class="card"><div class="label">UNITS SOLD</div><div class="metric" id="slUnits">0</div></div>
+  <div class="card"><div class="label">AVERAGE SALE</div><div class="metric" id="slAverage">GHS 0.00</div></div>
+</div>
+
+<div class="panel">
+  <h3>🗓️ Daily / Weekly / Monthly Sales Reports</h3>
+  <p class="sub">Quick snapshots of performance for today, the last 7 days, and this calendar month — each can be printed on its own.</p>
+  <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+    <div class="card">
+      <div class="label">TODAY'S SALES</div>
+      <div class="metric green" id="prDaySales">GHS 0.00</div>
+      <div class="sub" id="prDayMeta">0 invoices · 0 units</div>
+      <button class="btn secondary" style="margin-top:10px;width:100%" onclick="printPeriodReport('day')">🖶 Print Daily Report</button>
+    </div>
+    <div class="card">
+      <div class="label">WEEKLY SALES (LAST 7 DAYS)</div>
+      <div class="metric green" id="prWeekSales">GHS 0.00</div>
+      <div class="sub" id="prWeekMeta">0 invoices · 0 units</div>
+      <button class="btn secondary" style="margin-top:10px;width:100%" onclick="printPeriodReport('week')">🖶 Print Weekly Report</button>
+    </div>
+    <div class="card">
+      <div class="label">MONTHLY SALES (THIS MONTH)</div>
+      <div class="metric green" id="prMonthSales">GHS 0.00</div>
+      <div class="sub" id="prMonthMeta">0 invoices · 0 units</div>
+      <button class="btn secondary" style="margin-top:10px;width:100%" onclick="printPeriodReport('month')">🖶 Print Monthly Report</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Sales Log History</h3>
+  <div class="grid2">
+    <div class="field"><label>From Date</label><input id="salesLogFrom" type="date" onchange="renderSalesLog()"></div>
+    <div class="field"><label>To Date</label><input id="salesLogTo" type="date" onchange="renderSalesLog()"></div>
+    <div class="field"><label>Item</label><select id="salesLogItem" onchange="renderSalesLog()"><option value="">All items</option></select></div>
+    <div class="field"><label>Customer</label><input id="salesLogCustomer" placeholder="Search customer name..." oninput="renderSalesLog()"></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px">
+    <button class="btn pill" onclick="clearSalesFilters()">Clear filters</button>
+    <button class="btn pill pill-blue" onclick="exportSalesLogExcel()">⬇ Export to Excel</button>
+    <button class="btn pill pill-blue" onclick="downloadSalesLogPDF()">⬇ Download PDF</button>
+  </div>
+  <div class="sub" id="salesLogCount" style="margin-top:12px"></div>
+</div>
+
+<div class="panel">
+  <p class="sub" style="margin:0 0 10px">💡 Tip: click any row below to print that sale's receipt instantly.</p>
+  <div id="salesLogTable"></div>
+</div>
+
+<div class="panel">
+  <h3>Sales Summary Report</h3>
+  <div class="grid3">
+    <div><div class="kpi">Gross Sales</div><div class="metric green" id="sumGross">GHS 0.00</div></div>
+    <div><div class="kpi">Cost of Goods Sold</div><div class="metric" id="sumCost">GHS 0.00</div></div>
+    <div><div class="kpi">Gross Profit</div><div class="metric green" id="sumProfit">GHS 0.00</div></div>
+    <div><div class="kpi">Discounts</div><div class="metric" id="sumDiscount">GHS 0.00</div></div>
+    <div><div class="kpi">Customers</div><div class="metric" id="sumCustomers">0</div></div>
+    <div><div class="kpi">Items Sold</div><div class="metric" id="sumUnits">0</div></div>
+  </div>
+  <div id="salesSummaryTable" style="margin-top:16px"></div>
+</div>
+</section>
+
+
+<section id="invoicesPage" class="page">
+  <div class="title">
+    <div><h1>Invoices</h1><div class="sub">Create, view, print and save invoices as PDF</div></div>
+    <button class="primary" onclick="newInvoice()">+ New Invoice</button>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="label">TOTAL INVOICES</div><div class="metric" id="invCount">0</div></div>
+    <div class="card"><div class="label">INVOICE SALES</div><div class="metric green" id="invRevenue">GHS 0.00</div></div>
+    <div class="card"><div class="label">CUSTOMERS</div><div class="metric" id="invCustomers">0</div></div>
+  </div>
+  <div class="panel">
+    <div class="toolbar">
+      <input id="invoiceSearch" placeholder="Search invoice or customer..." oninput="renderInvoices()">
+      <input id="invoiceFrom" type="date" onchange="renderInvoices()">
+      <input id="invoiceTo" type="date" onchange="renderInvoices()">
+      <button class="secondary btn" onclick="clearInvoiceFilters()">Clear</button>
+    </div>
+    <div id="invoiceTable"></div>
+  </div>
+</section>
+
+<section id="expenses" class="page">
+<div class="title"><div><h1>Expenses</h1><div class="sub">Record operating and pharmacy expenses</div></div><button class="primary" onclick="openExpense()">+ Add Expense</button></div>
+<div class="panel"><div id="expensesTable"></div></div>
+</section>
+
+<section id="customers" class="page">
+<div class="title"><div><h1>Customers</h1><div class="sub">Basic customer records for sales and invoices</div></div><button class="primary" onclick="openCustomer()">+ Add Customer</button></div>
+<div class="panel"><div id="customersTable"></div></div>
+</section>
+
+<section id="reports" class="page">
+<div class="title"><div><h1>Reports</h1><div class="sub">Sales, stock and expense summaries</div></div></div>
+<div class="cards"><div class="card"><div class="label">TOTAL SALES</div><div class="metric green" id="repSales">GHS 0.00</div></div><div class="card"><div class="label">TOTAL EXPENSES</div><div class="metric red" id="repExp">GHS 0.00</div></div><div class="card"><div class="label">EST. PROFIT</div><div class="metric" id="repProfit">GHS 0.00</div></div><div class="card"><div class="label">STOCK VALUE</div><div class="metric" id="repStock">GHS 0.00</div></div></div>
+<div class="panel">
+<h3>📋 Stock Summary</h3>
+<p class="sub">Live inventory overview. Quantities and values update automatically when stock or prices change.</p>
+<div class="cards" style="margin:12px 0 0">
+<div class="card"><div class="label">ITEMS IN STOCK</div><div class="metric" id="stockItemCount">0</div></div>
+<div class="card"><div class="label">CATEGORIES</div><div class="metric" id="stockCategoryCount">0</div></div>
+<div class="card"><div class="label">LOW STOCK ITEMS</div><div class="metric amber" id="stockLowCount">0</div></div>
+<div class="card"><div class="label">OUT OF STOCK</div><div class="metric red" id="stockOutCount">0</div></div>
+</div>
+</div>
+<div class="panel">
+<h3>💰 Stock-In Cost vs Potential Selling Price</h3>
+<p class="sub">What it cost to bring all current stock in (Cost × In Stock quantity), versus what you'd earn if every unit currently in stock sold at its listed price (Selling Price × In Stock quantity).</p>
+<div class="grid3">
+<div class="card"><div class="label">TOTAL STOCK-IN COST</div><div class="metric" id="stockCost">GHS 0.00</div></div>
+<div class="card"><div class="label">TOTAL SELLING PRICE (IF ALL SOLD)</div><div class="metric" id="stockSelling">GHS 0.00</div></div>
+<div class="card"><div class="label">POTENTIAL PROFIT (IF ALL SOLD)</div><div class="metric green" id="stockPotentialProfit">GHS 0.00</div></div>
+</div>
+<div style="margin-top:18px;display:grid;gap:14px">
+<div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px"><span>Stock-In Cost</span><span id="costBarLabel">GHS 0.00</span></div><div style="height:42px;background:#eef2f6;border-radius:7px;overflow:hidden"><div id="costBar" style="height:100%;width:0%;background:#f05a00;border-radius:7px;transition:width .3s"></div></div></div>
+<div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px"><span>Potential Selling Price</span><span id="sellingBarLabel">GHS 0.00</span></div><div style="height:42px;background:#eef2f6;border-radius:7px;overflow:hidden"><div id="sellingBar" style="height:100%;width:0%;background:#159d8c;border-radius:7px;transition:width .3s"></div></div></div>
+</div>
+</div>
+<div class="panel">
+<h3>📊 Total Sales Report &amp; Analysis</h3>
+<p class="sub">Full performance breakdown for a selected period — revenue, profit, trends and top performers.</p>
+<div class="toolbar" style="margin-top:4px;flex-wrap:wrap">
+<div class="field" style="margin:0;max-width:160px"><label>From</label><input type="date" id="salesRepFrom" onchange="renderSalesAnalysis()"></div>
+<div class="field" style="margin:0;max-width:160px"><label>To</label><input type="date" id="salesRepTo" onchange="renderSalesAnalysis()"></div>
+<button class="btn secondary" style="align-self:flex-end" onclick="clearSalesAnalysisFilter()">Clear</button>
+<button class="btn secondary" style="align-self:flex-end" onclick="exportSalesAnalysisExcel()">⬇ Export Excel</button>
+<button class="btn secondary" style="align-self:flex-end" onclick="printSalesAnalysisReport()">🖶 Print / PDF</button>
+</div>
+<div class="cards" style="margin-top:14px">
+<div class="card"><div class="label">TOTAL REVENUE</div><div class="metric green" id="saRevenue">GHS 0.00</div></div>
+<div class="card"><div class="label">TOTAL TRANSACTIONS</div><div class="metric" id="saCount">0</div></div>
+<div class="card"><div class="label">UNITS SOLD</div><div class="metric" id="saUnits">0</div></div>
+<div class="card"><div class="label">AVG SALE VALUE</div><div class="metric" id="saAvg">GHS 0.00</div></div>
+</div>
+<div class="cards" style="margin-top:14px">
+<div class="card"><div class="label">COST OF GOODS SOLD</div><div class="metric red" id="saCost">GHS 0.00</div></div>
+<div class="card"><div class="label">GROSS PROFIT</div><div class="metric green" id="saProfit">GHS 0.00</div></div>
+<div class="card"><div class="label">PROFIT MARGIN</div><div class="metric" id="saMargin">0%</div></div>
+<div class="card"><div class="label">UNIQUE CUSTOMERS</div><div class="metric" id="saCustomers">0</div></div>
+</div>
+<div class="grid2" style="margin-top:18px">
+<div><h4 style="margin:0 0 8px;font-size:13px;color:var(--muted)">SALES TREND (REVENUE BY DAY)</h4><div style="height:280px"><canvas id="salesTrendChart"></canvas></div></div>
+<div><h4 style="margin:0 0 8px;font-size:13px;color:var(--muted)">TOP 8 SELLING MEDICINES (UNITS)</h4><div style="height:280px"><canvas id="salesAnalysisTopChart"></canvas></div></div>
+</div>
+<div style="margin-top:20px">
+<h4 style="margin:0 0 8px;font-size:13px;color:var(--muted)">TOP CUSTOMERS BY SPEND</h4>
+<div id="saTopCustomers"></div>
+</div>
+</div>
+<div class="panel">
+<h3>👥 Staff Performance</h3>
+<p class="sub">See what each staff member has sold — revenue, transactions and units, for any date range.</p>
+<div class="toolbar" style="margin-top:4px;flex-wrap:wrap">
+<div class="field" style="margin:0;max-width:200px"><label>Staff Member</label><select id="staffPerfUser" onchange="renderStaffPerformance()"></select></div>
+<div class="field" style="margin:0;max-width:160px"><label>From</label><input type="date" id="staffPerfFrom" onchange="renderStaffPerformance()"></div>
+<div class="field" style="margin:0;max-width:160px"><label>To</label><input type="date" id="staffPerfTo" onchange="renderStaffPerformance()"></div>
+<button class="btn secondary" style="align-self:flex-end" onclick="clearStaffPerformanceFilter()">Clear</button>
+<button class="btn secondary" style="align-self:flex-end" onclick="printStaffPerformance()">🖶 Print / PDF</button>
+</div>
+<div class="cards" style="margin-top:14px">
+<div class="card"><div class="label">TRANSACTIONS</div><div class="metric" id="spCount">0</div></div>
+<div class="card"><div class="label">REVENUE</div><div class="metric green" id="spRevenue">GHS 0.00</div></div>
+<div class="card"><div class="label">UNITS SOLD</div><div class="metric" id="spUnits">0</div></div>
+<div class="card"><div class="label">AVG SALE VALUE</div><div class="metric" id="spAvg">GHS 0.00</div></div>
+</div>
+<div id="staffPerfTable" style="margin-top:14px"></div>
+</div>
+<div class="panel"><h3>All Transactions</h3><div id="reportTable"></div></div>
+</section>
+
+<section id="settings" class="page">
+<div class="title"><div><h1>Settings</h1><div class="sub">Pharmacy information printed on receipts and invoices</div></div></div>
+<div class="panel"><div class="grid2"><div class="field"><label>Pharmacy Name</label><input id="setName"></div><div class="field"><label>Phone</label><input id="setPhone"></div><div class="field"><label>Email</label><input id="setEmail" type="email" placeholder="pharmacy@email.com"></div><div class="field"><label>Address</label><input id="setAddress"></div><div class="field"><label>Currency</label><input value="GHS" disabled></div></div><button class="primary" onclick="saveSettings()">Save Settings</button></div>
+
+<div class="panel">
+<h3>🔐 Account &amp; Security</h3>
+<p class="sub">Login credentials used to access this PharmaTrack installation.</p>
+<div class="grid2">
+<div class="field"><label>Username</label><input id="acctUser"></div>
+<div class="field"><label>Current Password</label><input id="acctCurrentPass" type="password" autocomplete="current-password"></div>
+</div>
+<div class="grid2">
+<div class="field"><label>New Password</label><input id="acctNewPass" type="password" autocomplete="new-password" placeholder="Leave blank to keep current password"></div>
+<div class="field"><label>Confirm New Password</label><input id="acctConfirmPass" type="password" autocomplete="new-password"></div>
+</div>
+<button class="primary" onclick="saveAccount()">Update Login</button>
+</div>
+
+<div class="panel">
+<h3>👥 Staff Accounts</h3>
+<p class="sub">Create logins for Sales Personnel and Managers. Only Managers can edit medicines/inventory and view Reports &amp; Settings.</p>
+<div class="toolbar" style="margin-bottom:0"><button class="primary btn" onclick="openUserModal()">+ Add Staff Account</button></div>
+<div id="usersTable" style="margin-top:12px"></div>
+</div>
+
+<div class="panel">
+<h3>🖼 Branding</h3>
+<p class="sub">Your logo and digital stamp appear on printed receipts, invoices and reports.</p>
+<div class="grid2" style="margin-top:10px">
+<div class="field">
+<label>Pharmacy Logo</label>
+<input id="setLogoInput" type="file" accept="image/*" onchange="previewBrandImage(event,'logo')">
+<div id="logoPreview" style="margin-top:8px"><span class="sub">No logo uploaded</span></div>
+</div>
+<div class="field">
+<label>Digital Stamp</label>
+<input id="setStampInput" type="file" accept="image/*" onchange="previewBrandImage(event,'stamp')">
+<div id="stampPreview" style="margin-top:8px"><span class="sub">No stamp uploaded</span></div>
+</div>
+</div>
+<div class="grid2" style="margin-top:10px">
+<div class="field">
+<label>Digital Signature (image)</label>
+<input id="setSignatureInput" type="file" accept="image/*" onchange="previewBrandImage(event,'signature')">
+<div id="signaturePreview" style="margin-top:8px"><span class="sub">No signature uploaded</span></div>
+</div>
+<div class="field">
+<label>Signed By (name)</label>
+<input id="setSignatureName" placeholder="e.g. John Mensah">
+<label style="margin-top:9px">Signatory Title</label>
+<input id="setSignatureTitle" placeholder="e.g. Pharmacist / Manager">
+</div>
+</div>
+<button class="primary" style="margin-top:12px" onclick="saveSettings()">Save Settings</button>
+</div>
+
+<div class="panel">
+<h3>✝️ Bible Verse on Receipts</h3>
+<p class="sub">A verse scrolls across the bottom of printed receipts and invoices, rolling from left to right.</p>
+<label class="autoprint-check" style="margin-bottom:10px"><input type="checkbox" id="setShowVerse" onchange="toggleVerseMode()"> Show scrolling Bible verse on receipts &amp; invoices</label>
+<div class="field"><label>Verse Mode</label>
+<select id="setVerseMode" onchange="toggleVerseMode()">
+<option value="daily">Daily verse (auto-changes every day)</option>
+<option value="custom">Custom fixed verse</option>
+</select>
+</div>
+<div class="field" id="verseTodayField">
+<label>Today's Verse (preview)</label>
+<div id="verseTodayPreview" class="sub" style="padding:9px 11px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;font-style:italic"></div>
+</div>
+<div class="field" id="verseTextField" style="display:none">
+<label>Verse Text</label><textarea id="setVerseText" rows="2" placeholder="e.g. Philippians 4:19 - And my God will supply all your needs according to His riches in glory in Christ Jesus."></textarea>
+</div>
+<button class="primary" onclick="saveSettings()">Save Settings</button>
+</div>
+
+<div class="panel">
+<h3>💾 Backup & Restore</h3>
+<p class="sub">Save a full backup of your inventory, sales, expenses, customers and settings, or restore from a previous backup file.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+<button class="primary btn" onclick="exportBackup()">⬇ Export Backup (.json)</button>
+<button class="secondary btn" onclick="document.getElementById('backupFileInput').click()">⬆ Import Backup (.json)</button>
+<input id="backupFileInput" type="file" accept="application/json" style="display:none" onchange="importBackupFile(event)">
+</div>
+</div>
+
+<div class="panel">
+<h3>📊 Import / Export to Excel</h3>
+<p class="sub">Export your data to an Excel workbook (Products, Sales, Expenses, Customers), or import products and customers from an Excel file.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+<button class="primary btn" onclick="exportExcel()">⬇ Export to Excel</button>
+<button class="secondary btn" onclick="document.getElementById('excelFileInput').click()">⬆ Import from Excel</button>
+<input id="excelFileInput" type="file" accept=".xlsx,.xls" style="display:none" onchange="importExcelFile(event)">
+</div>
+<p class="pdf-note">Import reads the <b>Products</b> and <b>Customers</b> sheets and replaces the matching data. Sales and Expenses history is exported for your records but is not re-imported, to avoid duplicating transactions.</p>
+</div>
+
+<div class="panel" style="border-color:#f3caca">
+<h3 style="color:var(--red)">⚠️ Danger Zone</h3>
+<p class="sub">These actions affect your stored data directly. Export a backup first if you're not sure.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+<button class="danger btn" onclick="resetData()">↺ Reset to Demo Data</button>
+<button class="danger btn" onclick="clearAllData()">🗑 Clear All Data</button>
+</div>
+<p class="pdf-note"><b>Reset to Demo Data</b> restores the original sample products, prices and settings.<br><b>Clear All Data</b> permanently deletes all products, sales, expenses and customers — your pharmacy settings, branding and login stay untouched.</p>
+</div>
+</section>
+
+<section id="help" class="page">
+<div class="title"><div><h1>Help</h1><div class="sub">Quick guide to using PharmaTrack</div></div></div>
+
+<div class="panel">
+<h3>🚀 Getting Started</h3>
+<p><b>Dashboard</b> gives you a live overview of today's sales, low-stock items and an auto-generated summary of your pharmacy's performance.</p>
+<p><b>Inventory</b> is where you add, edit and track medicines, quantities and prices. <b>Sales / POS</b> is where you record a sale, and <b>Sales Log</b> / <b>Invoices</b> let you search and reprint past transactions.</p>
+</div>
+
+<div class="panel">
+<h3>📦 Managing Inventory</h3>
+<p>Go to <b>Inventory → + Add Medicine</b> to create a new item, or click <b>Edit</b> on any row to update its price, quantity or picture. The <b>Reorder Level</b> field controls when an item is flagged as "Low Stock" on the Dashboard.</p>
+</div>
+
+<div class="panel">
+<h3>🛒 Making a Sale</h3>
+<p>On <b>Sales / POS</b>, pick a medicine and quantity, click <b>Add to Cart</b>, then repeat for each item. When ready, choose whether to auto-print a receipt and pick a paper size (80mm / 58mm thermal or A5 / A4), then click <b>+ Add to log</b> to complete the sale and update stock automatically.</p>
+</div>
+
+<div class="panel">
+<h3>💳 Expenses</h3>
+<p>Go to <b>Expenses → + Add Expense</b>, fill in the description, category and amount. You can also generate a printed expense receipt at the same time using the same checkbox and paper-size option used for sales.</p>
+</div>
+
+<div class="panel">
+<h3>💾 Backup & Excel</h3>
+<p>In <b>Settings</b>, use <b>Export Backup</b> regularly to save a full copy of your data as a .json file — keep it somewhere safe. Use <b>Import Backup</b> to restore it later, for example on a new device.</p>
+<p>Use <b>Export to Excel</b> to get a spreadsheet of your products, sales, expenses and customers for reporting outside the app. <b>Import from Excel</b> lets you bulk-update your product list and customers from a spreadsheet.</p>
+</div>
+
+<div class="panel">
+<h3>❓ Troubleshooting</h3>
+<p>All data is stored locally in this browser. Clearing your browser data will erase it unless you've exported a backup first. If something looks wrong, try exporting a backup before using <b>Reset demo data</b> in Settings.</p>
+</div>
+</section>
+
+<section id="printArea" style="display:none"></section>
+</main></div>
+
+<div class="modal" id="modal"><div class="modalbox" id="modalBox"></div></div>
+<script>
+const KEY='pharmatrack_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{
+products:[
+{id:1,name:'Paracetamol 500mg',sku:'PAR500',category:'Analgesic',qty:120,reorder:20,buy:2.2,sell:4.5,expiry:'2027-05-30'},
+{id:2,name:'Amoxicillin 500mg',sku:'AMO500',category:'Antibiotic',qty:35,reorder:15,buy:4,sell:7.5,expiry:'2026-11-18'},
+{id:3,name:'Vitamin C 1000mg',sku:'VITC1000',category:'Supplement',qty:12,reorder:20,buy:5,sell:9,expiry:'2027-02-15'}
+],sales:[],expenses:[],customers:[],settings:{name:'PharmaTrack Pharmacy',phone:'',address:'',email:'',logo:'',stamp:'',signature:'',signatureName:'',signatureTitle:'',showVerse:true,verseMode:'daily',verseText:'Philippians 4:19 - And my God will supply all your needs according to His riches in glory in Christ Jesus.'},
+users:[{id:1,username:'admin',password:'admin123',name:'Administrator',role:'manager'}]
+};
+if(!db.users || !db.users.length){
+ const legacy=db.auth||{username:'admin',password:'admin123'};
+ db.users=[{id:1,username:legacy.username,password:legacy.password,name:'Administrator',role:'manager'}];
+ delete db.auth;
+ save();
+}
+let currentUser=null;
+function findUser(username){return (db.users||[]).find(u=>u.username.toLowerCase()===String(username||'').toLowerCase())}
+function isManager(){return !!(currentUser && currentUser.role==='manager')}
+function managerCount(){return (db.users||[]).filter(u=>u.role==='manager').length}
+const DAILY_VERSES=[
+ 'Philippians 4:19 - And my God will supply all your needs according to His riches in glory in Christ Jesus.',
+ 'Jeremiah 17:14 - Heal me, O LORD, and I shall be healed; save me, and I shall be saved: for thou art my praise.',
+ 'Psalm 23:1 - The LORD is my shepherd; I shall not want.',
+ 'Proverbs 3:5-6 - Trust in the LORD with all thine heart, and lean not unto thine own understanding.',
+ 'Isaiah 41:10 - Fear thou not; for I am with thee: be not dismayed; for I am thy God.',
+ 'Psalm 103:2-3 - Bless the LORD, O my soul, who forgiveth all thine iniquities; who healeth all thy diseases.',
+ '3 John 1:2 - Beloved, I wish above all things that thou mayest prosper and be in health.',
+ 'Exodus 15:26 - I am the LORD that healeth thee.',
+ 'Psalm 118:24 - This is the day which the LORD hath made; we will rejoice and be glad in it.',
+ 'Proverbs 17:22 - A merry heart doeth good like a medicine: but a broken spirit drieth the bones.',
+ 'Jeremiah 30:17 - For I will restore health unto thee, and I will heal thee of thy wounds, saith the LORD.',
+ 'Psalm 34:8 - O taste and see that the LORD is good: blessed is the man that trusteth in him.',
+ 'Matthew 6:33 - Seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.',
+ 'Isaiah 40:31 - They that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles.',
+ 'Psalm 30:2 - O LORD my God, I cried unto thee, and thou hast healed me.',
+ 'Numbers 6:24-26 - The LORD bless thee, and keep thee: the LORD make his face shine upon thee, and be gracious unto thee.',
+ 'Psalm 46:1 - God is our refuge and strength, a very present help in trouble.',
+ 'James 5:15 - And the prayer of faith shall save the sick, and the Lord shall raise him up.',
+ 'Psalm 91:1-2 - He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty.',
+ 'Romans 8:28 - And we know that all things work together for good to them that love God.',
+ 'Psalm 121:2 - My help cometh from the LORD, which made heaven and earth.',
+ 'Proverbs 16:24 - Pleasant words are as an honeycomb, sweet to the soul, and health to the bones.',
+ 'Isaiah 53:5 - And with his stripes we are healed.',
+ 'Psalm 147:3 - He healeth the broken in heart, and bindeth up their wounds.',
+ 'Matthew 11:28 - Come unto me, all ye that labour and are heavy laden, and I will give you rest.',
+ 'Philippians 4:6-7 - Be careful for nothing; but in every thing by prayer and supplication let your requests be made known unto God.',
+ 'Psalm 16:11 - Thou wilt shew me the path of life: in thy presence is fulness of joy.',
+ 'Deuteronomy 31:6 - Be strong and of a good courage, fear not, nor be afraid of them: for the LORD thy God, he it is that doth go with thee.',
+ 'Psalm 27:1 - The LORD is my light and my salvation; whom shall I fear?',
+ 'Galatians 6:9 - And let us not be weary in well doing: for in due season we shall reap, if we faint not.',
+ 'Psalm 34:19 - Many are the afflictions of the righteous: but the LORD delivereth him out of them all.'
+];
+function getDailyVerse(){
+ const d=new Date();
+ const start=new Date(d.getFullYear(),0,0);
+ const diff=d-start;
+ const dayOfYear=Math.floor(diff/86400000);
+ return DAILY_VERSES[dayOfYear%DAILY_VERSES.length];
+}
+const DAILY_HEALTH_TIPS=[
+ 'Take medicines at the same time each day to build a routine and avoid missed doses.',
+ 'Drink at least 6-8 glasses of water daily to stay hydrated and support kidney function.',
+ 'Always finish a full course of antibiotics, even if you start feeling better early.',
+ 'Store medicines in a cool, dry place away from direct sunlight and out of reach of children.',
+ 'Check expiry dates before use — expired medicines can lose potency or become harmful.',
+ 'Never share prescription medicines with others, even if symptoms seem similar.',
+ 'Read the label for food or drug interactions before taking a new medication.',
+ 'Get at least 7-8 hours of sleep a night to support your immune system.',
+ 'Wash your hands regularly to reduce the spread of infections.',
+ 'Eat a balanced diet rich in fruits and vegetables to boost overall health.',
+ 'Exercise for at least 30 minutes a day, most days of the week.',
+ 'Monitor your blood pressure regularly, especially if you have a family history of hypertension.',
+ 'Don\'t skip meals when taking medication that requires food — it can affect absorption.',
+ 'Keep a list of all medications you take and share it with every healthcare provider you see.',
+ 'Avoid mixing alcohol with medication unless your pharmacist confirms it is safe.',
+ 'Use a pill organizer if you take multiple medicines to avoid double-dosing or missed doses.',
+ 'Manage stress through relaxation, prayer, or exercise — chronic stress affects your whole body.',
+ 'Get regular health screenings even when you feel well; early detection saves lives.',
+ 'Limit salt and sugar intake to protect your heart and manage blood sugar levels.',
+ 'Keep vaccinations up to date to protect yourself and those around you.',
+ 'Dispose of unused or expired medicine properly — don\'t just throw it in the trash or flush it.',
+ 'Ask your pharmacist about side effects before starting any new medication.',
+ 'Sit up for at least 10 minutes after taking oral medication to help it go down properly.',
+ 'Protect your skin with sunscreen, even on cloudy days.',
+ 'Keep emergency contact numbers and your doctor\'s number saved and easy to find.',
+ 'Take breaks from screens to rest your eyes if you work long hours at a computer.',
+ 'Maintain good oral hygiene — brush twice daily and visit a dentist regularly.',
+ 'Don\'t self-medicate with leftover prescriptions from a previous illness.',
+ 'Keep a symptom diary if you have a chronic condition, to help your doctor track changes.',
+ 'Stay active even in small ways — short walks add up to real health benefits over time.',
+ 'Know the warning signs of a medical emergency and don\'t hesitate to seek help.'
+];
+function getDailyHealthTip(){
+ const d=new Date();
+ const start=new Date(d.getFullYear(),0,0);
+ const diff=d-start;
+ const dayOfYear=Math.floor(diff/86400000);
+ return DAILY_HEALTH_TIPS[dayOfYear%DAILY_HEALTH_TIPS.length];
+}
+let cart=[]; function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function money(n){return 'GHS '+Number(n||0).toFixed(2)}
+function today(){return new Date().toISOString().slice(0,10)}
+function printHeaderHTML(){
+ const set=db.settings||{};
+ const logo=set.logo?`<img src="${set.logo}" alt="Logo" style="max-height:60px;max-width:170px;display:block;margin:0 auto 6px">`:'';
+ const contact=[set.phone,set.email].filter(Boolean).join(' • ');
+ return `${logo}<h2 style="margin:4px 0">${set.name||'Pharmacy'}</h2><div>${set.address||''}</div><div>${contact}</div>`;
+}
+function printStampHTML(){
+ const set=db.settings||{};
+ const hasSig=!!set.signature, hasStamp=!!set.stamp, hasName=!!(set.signatureName||set.signatureTitle);
+ if(!hasSig && !hasStamp && !hasName) return '';
+ const sigBlock=`<div class="sig-block">
+   ${hasSig?`<img src="${set.signature}" alt="Signature">`:''}
+   <div class="sig-line">${hasSig?'':'&nbsp;'}</div>
+   <div class="sig-name">${set.signatureName||''}</div>
+   <div class="sig-title">${set.signatureTitle||'Authorized Signature'}</div>
+  </div>`;
+ const stampBlock=hasStamp?`<div class="sig-block"><img src="${set.stamp}" alt="Stamp" style="max-height:85px"><div class="sig-title" style="margin-top:4px">Official Stamp</div></div>`:'';
+ return `<div class="sig-row">${sigBlock}${stampBlock}</div>`;
+}
+function printVerseHTML(){
+ const set=db.settings||{};
+ if(!set.showVerse) return '';
+ const text=set.verseMode==='custom'?(set.verseText||''):getDailyVerse();
+ if(!text) return '';
+ const verse=String(text).replace(/</g,'&lt;');
+ return `<div class="verse-marquee"><span>${verse}</span></div>`;
+}
+const MANAGER_ONLY_PAGES=['reports','settings'];
+function go(p){
+ if(MANAGER_ONLY_PAGES.includes(p) && !isManager()){
+  alert('🔒 This section is restricted to Managers.');
+  return;
+ }
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(p).classList.add('active');document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));renderAll()}
+document.querySelectorAll('#nav button').forEach(b=>{
+ if(b.dataset.action==='quickaccess'){ b.onclick=()=>openQuickAccess(); }
+ else { b.onclick=()=>go(b.dataset.page); }
+});
+function applyRolePermissions(){
+ const manager=isManager();
+ document.querySelectorAll('[data-require-manager]').forEach(el=>{ el.style.display=manager?'':'none'; });
+ if(!manager){
+  const activePage=document.querySelector('main .page.active');
+  if(activePage && MANAGER_ONLY_PAGES.includes(activePage.id)){
+   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+   document.getElementById('dashboard').classList.add('active');
+   document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.page==='dashboard'));
+  }
+ }
+}
+
+let stockCategoryChart=null, topSellersChart=null, salesTrendChart=null, salesAnalysisTopChart=null;
+function renderStockCharts(){
+  if(!window.Chart) return;
+  const cat={};
+  db.products.forEach(p=>{
+    const k=p.category||'Uncategorized';
+    cat[k]=(cat[k]||0)+(Number(p.buy)||0)*(Number(p.qty)||0);
+  });
+  const cats=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
+  const sold={};
+  db.sales.forEach(s=>(s.items||[]).forEach(i=>{
+    sold[i.name]=(sold[i.name]||0)+Number(i.qty||0);
+  }));
+  const tops=Object.entries(sold).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const c1=document.getElementById('stockCategoryChart');
+  const c2=document.getElementById('topSellersChart');
+  if(c1){
+    if(stockCategoryChart) stockCategoryChart.destroy();
+    stockCategoryChart=new Chart(c1,{type:'pie',
+      data:{labels:cats.map(x=>x[0]),datasets:[{data:cats.map(x=>x[1])}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'right'},
+          tooltip:{callbacks:{label:(ctx)=>`${ctx.label} — GHS ${Number(ctx.raw).toFixed(2)}`}}}}});
+  }
+  if(c2){
+    if(topSellersChart) topSellersChart.destroy();
+    topSellersChart=new Chart(c2,{type:'bar',
+      data:{labels:tops.map(x=>x[0]),datasets:[{label:'Units sold',data:tops.map(x=>x[1])}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{y:{beginAtZero:true,precision:0}}}});
+  }
+}
+
+
+function getSalesLogFiltered(){
+  const from=document.getElementById('salesLogFrom')?.value||'';
+  const to=document.getElementById('salesLogTo')?.value||'';
+  const item=(document.getElementById('salesLogItem')?.value||'').toLowerCase();
+  const cust=(document.getElementById('salesLogCustomer')?.value||'').toLowerCase().trim();
+  return db.sales.filter(s=>{
+    if(from && s.date<from) return false;
+    if(to && s.date>to) return false;
+    if(item && !(s.items||[]).some(i=>(i.name||'').toLowerCase()===item)) return false;
+    if(cust && !String(s.customer||'Walk-in').toLowerCase().includes(cust)) return false;
+    return true;
+  }).slice().reverse();
+}
+
+function findSale(invoice){ return db.sales.find(s=>String(s.invoice)===String(invoice)); }
+
+function saleItemsHtml(s){
+  return (s.items||[]).map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>${money(i.price)}</td><td>${money(Number(i.qty||0)*Number(i.price||0))}</td></tr>`).join('');
+}
+
+function viewSale(invoice){
+  const s=findSale(invoice); if(!s) return;
+  document.getElementById('saleModalTitle').textContent='View Sale '+s.invoice;
+  document.getElementById('saleModalBody').innerHTML=`
+    <p><b>Invoice:</b> ${s.invoice} &nbsp; <b>Date:</b> ${s.date} ${s.time||''}</p>
+    <p><b>Customer:</b> ${s.customer||'Walk-in'}</p>
+    <table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>${saleItemsHtml(s)}</table>
+    <h3 style="text-align:right">Total: ${money(s.total)}</h3>`;
+  document.getElementById('saleModal').style.display='flex';
+}
+
+function closeSaleModal(){ document.getElementById('saleModal').style.display='none'; }
+
+function editSale(invoice){
+  const s=findSale(invoice); if(!s) return;
+  const customer=prompt('Customer name:', s.customer||'Walk-in');
+  if(customer===null) return;
+  const total=prompt('Sale total (GHS):', Number(s.total||0).toFixed(2));
+  if(total===null || isNaN(Number(total))) return;
+  s.customer=customer||'Walk-in';
+  s.total=Number(total);
+  save();
+  renderAll();
+  alert('Sale updated.');
+}
+
+function deleteSale(invoice){
+  const s=findSale(invoice); if(!s) return;
+  if(!confirm(`Delete sale ${invoice}? This cannot be undone.`)) return;
+  db.sales=db.sales.filter(x=>String(x.invoice)!==String(invoice));
+  save();
+  renderAll();
+}
+
+function printSale(invoice,type,paperOverride){
+  const s=findSale(invoice); if(!s) return;
+  const size=paperOverride||document.getElementById('printPaperSize')?.value||'80mm';
+  const cls={'80mm':'print-thermal-80','58mm':'print-thermal-58','A4':'print-a4','A5':'print-a5','Letter':'print-letter'}[size]||'print-thermal-80';
+  const isReceipt=type==='receipt';
+  const title=isReceipt?'SALES RECEIPT':'INVOICE';
+  const rows=(s.items||[]).map(i=>`<div class="print-row"><span>${i.name} × ${i.qty}</span><span>${money(Number(i.qty||0)*Number(i.price||0))}</span></div>`).join('');
+  document.getElementById('printArea').innerHTML=`
+    <div class="${cls}">
+      <div class="print-center">${printHeaderHTML()}
+      <div class="print-line"></div><b>${title}</b><div class="print-line"></div></div>
+      <div><b>Invoice:</b> ${s.invoice}</div>
+      <div><b>Date:</b> ${s.date} ${s.time||''}</div>
+      <div><b>Customer:</b> ${s.customer||'Walk-in'}</div>
+      <div class="print-line"></div>${rows}<div class="print-line"></div>
+      <div class="print-row print-total"><span>TOTAL</span><span>${money(s.total)}</span></div>
+      <div class="print-center" style="margin-top:10px">Thank you for your business.</div>
+      ${printVerseHTML()}
+      ${printStampHTML()}
+    </div>`;
+  window.print();
+}
+
+function closePrintPreview(){ document.getElementById('printPreviewModal').style.display='none'; }
+function printPreviewNow(){ closePrintPreview(); window.print(); }
+
+function populateSalesLogItemFilter(){
+  const sel=document.getElementById('salesLogItem'); if(!sel) return;
+  const current=sel.value;
+  const names=Array.from(new Set(db.products.map(p=>p.name).filter(Boolean))).sort();
+  sel.innerHTML='<option value="">All items</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  if(names.includes(current)) sel.value=current;
+}
+function renderSalesLog(){
+  populateSalesLogItemFilter();
+  renderPeriodReports();
+  const sales=getSalesLogFiltered();
+  let gross=0, units=0, cost=0;
+  sales.forEach(s=>(s.items||[]).forEach(i=>{
+    units+=Number(i.qty||0); gross+=Number(i.qty||0)*Number(i.price||0);
+    const p=db.products.find(p=>p.id===i.id);
+    cost+=Number(i.qty||0)*Number(p?.buy||0);
+  }));
+  const customers=new Set(sales.map(s=>s.customer||'Walk-in')).size;
+  document.getElementById('slTotalSales').textContent=money(gross);
+  document.getElementById('slInvoices').textContent=sales.length;
+  document.getElementById('slUnits').textContent=units;
+  document.getElementById('slAverage').textContent=money(sales.length?gross/sales.length:0);
+  document.getElementById('sumGross').textContent=money(gross);
+  document.getElementById('sumCost').textContent=money(cost);
+  document.getElementById('sumProfit').textContent=money(gross-cost);
+  document.getElementById('sumDiscount').textContent=money(0);
+  document.getElementById('sumCustomers').textContent=customers;
+  document.getElementById('sumUnits').textContent=units;
+
+  const itemFilter=(document.getElementById('salesLogItem')?.value||'').toLowerCase();
+  const logRows=[];
+  sales.forEach(s=>{
+    (s.items||[]).forEach(i=>{
+      if(itemFilter && (i.name||'').toLowerCase()!==itemFilter) return;
+      const p=db.products.find(p=>p.id===i.id);
+      const value=Number(i.qty||0)*Number(i.price||0);
+      const profit=(Number(i.price||0)-Number(p?.buy||0))*Number(i.qty||0);
+      logRows.push({invoice:s.invoice,date:s.date,name:i.name,sku:p?.sku||'',category:p?.category||'',customer:s.customer||'Walk-in',qty:i.qty,price:i.price,value,profit});
+    });
+  });
+  document.getElementById('salesLogTable').innerHTML=logRows.length?`<div style="overflow:auto"><table class="log-table"><thead><tr><th>Date</th><th>Item ID</th><th>Description</th><th>Category</th><th>Customer</th><th>Qty Sold</th><th>Sell Price</th><th>Sales Value</th><th>Profit</th><th>Actions</th></tr></thead><tbody>`+
+    logRows.map(r=>`<tr data-invoice="${r.invoice}" style="cursor:pointer" title="Click row to print receipt" onclick="printSale('${r.invoice}','receipt')"><td>${r.date}</td><td><b>${r.name}</b></td><td>${r.sku||'-'}</td><td>${r.category||'-'}</td><td>${r.customer}</td><td>${r.qty}</td><td>${money(r.price)}</td><td>${money(r.value)}</td><td>${money(r.profit)}</td><td class="log-actions">
+<a href="#" class="log-link log-link-blue" onclick="event.stopPropagation();printSale('${r.invoice}','receipt');return false">🖶 Receipt</a>
+<a href="#" class="log-link log-link-green" onclick="event.stopPropagation();editSale('${r.invoice}');return false">✎ Edit</a><br>
+<a href="#" class="log-link log-link-red" onclick="event.stopPropagation();deleteSale('${r.invoice}');return false">🗑 Delete</a>
+</td></tr>`).join('')+'</tbody></table></div>':'<div class="empty">No sales match the selected filters.</div>';
+
+  const byDate={};
+  sales.forEach(s=>{
+    if(!byDate[s.date]) byDate[s.date]={sales:0,units:0,revenue:0};
+    byDate[s.date].sales++;
+    byDate[s.date].revenue+=Number(s.total||0);
+    byDate[s.date].units+=(s.items||[]).reduce((a,i)=>a+Number(i.qty||0),0);
+  });
+  const rows=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0]));
+  document.getElementById('salesSummaryTable').innerHTML=rows.length?'<table><tr><th>Date</th><th>Invoices</th><th>Units Sold</th><th>Revenue</th></tr>'+
+    rows.map(([d,x])=>`<tr><td>${d}</td><td>${x.sales}</td><td>${x.units}</td><td>${money(x.revenue)}</td></tr>`).join('')+'</table>':'<div class="empty">No summary data.</div>';
+
+  const countEl=document.getElementById('salesLogCount');
+  if(countEl){
+    const anyFilter=document.getElementById('salesLogFrom')?.value||document.getElementById('salesLogTo')?.value||document.getElementById('salesLogItem')?.value||document.getElementById('salesLogCustomer')?.value;
+    countEl.textContent=`Showing ${anyFilter?'':'all '}${logRows.length} ${logRows.length===1?'entry':'entries'}`;
+  }
+}
+function clearSalesFilters(){
+  ['salesLogFrom','salesLogTo','salesLogCustomer'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const item=document.getElementById('salesLogItem'); if(item) item.value='';
+  renderSalesLog();renderInvoices();
+}
+function exportSalesLogExcel(){
+  if(typeof XLSX==='undefined'){alert('The Excel library failed to load. Check your internet connection and try again.');return;}
+  const sales=getSalesLogFiltered();
+  const rows=sales.flatMap(s=>(s.items&&s.items.length?s.items:[{name:'',qty:'',price:''}]).map(i=>({Date:s.date,Time:s.time||'',Invoice:s.invoice,Customer:s.customer||'Walk-in',Item:i.name,Qty:i.qty,UnitPrice:i.price,LineTotal:(Number(i.qty)||0)*(Number(i.price)||0),SaleTotal:s.total})));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Sales Log');
+  XLSX.writeFile(wb,'sales-log-'+today()+'.xlsx');
+}
+function downloadSalesLogPDF(){
+  const sales=getSalesLogFiltered();
+  const revenue=sales.reduce((a,s)=>a+Number(s.total||0),0);
+  const units=sales.reduce((a,s)=>a+(s.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+  const from=document.getElementById('salesLogFrom')?.value||'All dates';
+  const to=document.getElementById('salesLogTo')?.value||'All dates';
+  const item=document.getElementById('salesLogItem')?.value||'All items';
+  const cust=document.getElementById('salesLogCustomer')?.value||'All customers';
+  document.getElementById('printArea').innerHTML=`<div class="print-a4">${printHeaderHTML()}<hr><h2 class="center">SALES LOG</h2><p><b>Period:</b> ${from} to ${to}<br><b>Item:</b> ${item}<br><b>Customer:</b> ${cust}</p><p><b>Invoices:</b> ${sales.length} &nbsp; <b>Units Sold:</b> ${units} &nbsp; <b>Revenue:</b> ${money(revenue)}</p><table><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Items</th><th>Total</th></tr>${sales.map(s=>`<tr><td>${s.date}</td><td>${s.invoice}</td><td>${s.customer||'Walk-in'}</td><td>${(s.items||[]).map(i=>`${i.name} × ${i.qty}`).join(', ')}</td><td>${money(s.total)}</td></tr>`).join('')}</table></div>`;
+  window.print();
+}
+
+/* Invoices page — every completed sale doubles as an invoice record */
+function getInvoicesFiltered(){
+  const q=(document.getElementById('invoiceSearch')?.value||'').toLowerCase().trim();
+  const from=document.getElementById('invoiceFrom')?.value||'';
+  const to=document.getElementById('invoiceTo')?.value||'';
+  return db.sales.filter(s=>{
+    if(from && s.date<from) return false;
+    if(to && s.date>to) return false;
+    if(!q) return true;
+    return (String(s.invoice)+' '+String(s.customer)).toLowerCase().includes(q);
+  }).slice().reverse();
+}
+function newInvoice(){ go('sales'); }
+function clearInvoiceFilters(){
+  ['invoiceSearch','invoiceFrom','invoiceTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  renderInvoices();
+}
+function renderInvoices(){
+  const table=document.getElementById('invoiceTable'); if(!table) return;
+  const invoices=getInvoicesFiltered();
+  document.getElementById('invCount').textContent=invoices.length;
+  document.getElementById('invRevenue').textContent=money(invoices.reduce((a,s)=>a+Number(s.total||0),0));
+  document.getElementById('invCustomers').textContent=new Set(invoices.map(s=>s.customer||'Walk-in')).size;
+  table.innerHTML=invoices.length?'<table><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Total</th><th>Actions</th></tr>'+
+    invoices.map(s=>`<tr><td><b>${s.invoice}</b></td><td>${s.date}</td><td>${s.customer||'Walk-in'}</td><td>${money(s.total)}</td><td>
+<button class="btn secondary" onclick="viewSale('${s.invoice}')">View</button>
+<button class="btn secondary" onclick="editSale('${s.invoice}')">Edit</button>
+<button class="btn danger" onclick="deleteSale('${s.invoice}')">Delete</button>
+<button class="btn secondary" onclick="printSale('${s.invoice}','invoice')">Print</button></td></tr>`).join('')+'</table>':'<div class="empty">No invoices match the selected filters.</div>';
+}
+function printSalesSummary(){
+  const sales=getSalesLogFiltered();
+  let revenue=sales.reduce((a,s)=>a+Number(s.total||0),0);
+  let units=sales.reduce((a,s)=>a+(s.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+  let cost=0;
+  sales.forEach(s=>(s.items||[]).forEach(i=>{const p=db.products.find(p=>p.id===i.id);cost+=Number(i.qty||0)*Number(p?.buy||0);}));
+  const from=document.getElementById('salesLogFrom')?.value||'All dates';
+  const paper=document.getElementById('printPaperSize')?.value||'A4';
+  const to=document.getElementById('salesLogTo')?.value||'All dates';
+  document.getElementById('printArea').innerHTML=`<div class="${paper==='80mm'?'print-thermal-80':paper==='58mm'?'print-thermal-58':paper==='A5'?'print-a5':paper==='Letter'?'print-letter':'print-a4'}">${printHeaderHTML()}<hr><h2 class="center">SALES SUMMARY REPORT</h2><p><b>Period:</b> ${from} to ${to}</p><table><tr><th>Metric</th><th>Value</th></tr><tr><td>Invoices</td><td>${sales.length}</td></tr><tr><td>Units Sold</td><td>${units}</td></tr><tr><td>Gross Sales</td><td>${money(revenue)}</td></tr><tr><td>Cost of Goods Sold</td><td>${money(cost)}</td></tr><tr><td>Gross Profit</td><td>${money(revenue-cost)}</td></tr></table><h3>Sales by Invoice</h3><table><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Total</th></tr>${sales.map(s=>`<tr><td>${s.date}</td><td>${s.invoice}</td><td>${s.customer||'Walk-in'}</td><td>${money(s.total)}</td></tr>`).join('')}</table></div>`;
+  window.print();
+}
+
+function getPeriodSales(period){
+  const t=today();
+  if(period==='day') return db.sales.filter(s=>s.date===t);
+  if(period==='week'){
+    const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-6);
+    const weekAgoStr=weekAgo.toISOString().slice(0,10);
+    return db.sales.filter(s=>s.date>=weekAgoStr && s.date<=t);
+  }
+  if(period==='month'){
+    const monthPrefix=t.slice(0,7);
+    return db.sales.filter(s=>s.date&&s.date.slice(0,7)===monthPrefix);
+  }
+  return [];
+}
+function periodLabelRange(period){
+  const t=today();
+  if(period==='day') return {title:'DAILY SALES REPORT',range:t};
+  if(period==='week'){
+    const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-6);
+    return {title:'WEEKLY SALES REPORT',range:weekAgo.toISOString().slice(0,10)+' to '+t};
+  }
+  if(period==='month'){
+    return {title:'MONTHLY SALES REPORT',range:t.slice(0,7)};
+  }
+  return {title:'SALES REPORT',range:''};
+}
+function renderPeriodReports(){
+  ['day','week','month'].forEach(p=>{
+    const sales=getPeriodSales(p);
+    const revenue=sales.reduce((a,s)=>a+Number(s.total||0),0);
+    const units=sales.reduce((a,s)=>a+(s.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+    const cap=p.charAt(0).toUpperCase()+p.slice(1);
+    const salesEl=document.getElementById('pr'+cap+'Sales'), metaEl=document.getElementById('pr'+cap+'Meta');
+    if(salesEl) salesEl.textContent=money(revenue);
+    if(metaEl) metaEl.textContent=`${sales.length} invoice${sales.length===1?'':'s'} · ${units} unit${units===1?'':'s'}`;
+  });
+}
+function printPeriodReport(period){
+  const sales=getPeriodSales(period).slice().reverse();
+  const revenue=sales.reduce((a,s)=>a+Number(s.total||0),0);
+  const units=sales.reduce((a,s)=>a+(s.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+  let cost=0;
+  sales.forEach(s=>(s.items||[]).forEach(i=>{const p=db.products.find(p=>p.id===i.id);cost+=Number(i.qty||0)*Number(p?.buy||0);}));
+  const customers=new Set(sales.map(s=>s.customer||'Walk-in')).size;
+  const {title,range}=periodLabelRange(period);
+  const paper=document.getElementById('printPaperSize')?.value||'A4';
+  const cls={'80mm':'print-thermal-80','58mm':'print-thermal-58','A4':'print-a4','A5':'print-a5','Letter':'print-letter'}[paper]||'print-a4';
+  document.getElementById('printArea').innerHTML=`<div class="${cls}">${printHeaderHTML()}<hr><h2 class="center">${title}</h2><p><b>Period:</b> ${range} &nbsp; <b>Printed:</b> ${today()}</p><table><tr><th>Metric</th><th>Value</th></tr><tr><td>Invoices</td><td>${sales.length}</td></tr><tr><td>Units Sold</td><td>${units}</td></tr><tr><td>Customers</td><td>${customers}</td></tr><tr><td>Gross Sales</td><td>${money(revenue)}</td></tr><tr><td>Cost of Goods Sold</td><td>${money(cost)}</td></tr><tr><td>Gross Profit</td><td>${money(revenue-cost)}</td></tr></table><h3>Sales by Invoice</h3><table><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Total</th></tr>${sales.length?sales.map(s=>`<tr><td>${s.date}</td><td>${s.invoice}</td><td>${s.customer||'Walk-in'}</td><td>${money(s.total)}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center">No sales in this period.</td></tr>'}</table></div>`;
+  window.print();
+}
+
+function goToSaleInLog(invoice){
+  go('salesLog');
+  setTimeout(()=>{
+    const rows=document.querySelectorAll('#salesLogTable tr[data-invoice="'+invoice+'"]');
+    if(rows.length){
+      rows[0].scrollIntoView({behavior:'smooth',block:'center'});
+      rows.forEach(r=>{r.style.transition='background .4s';r.style.background='#fff3cd';setTimeout(()=>{r.style.background='';},2000);});
+    }
+  },60);
+}
+
+function renderAll(){renderDashboard();renderInventory();renderSaleProducts();renderCart();renderSales();renderExpenses();renderCustomers();renderReports();renderSalesLog();renderInvoices();loadSettings();renderStockCharts()}
+function renderDashboard(){
+ let sales=db.sales.filter(s=>s.date===today()), ex=db.expenses.filter(e=>e.date===today());
+ document.getElementById('dashSales').textContent=money(sales.reduce((a,s)=>a+s.total,0));document.getElementById('dashTx').textContent=sales.length;
+ let low=db.products.filter(p=>p.qty<=p.reorder);document.getElementById('dashLow').textContent=low.length;document.getElementById('dashExp').textContent=money(ex.reduce((a,e)=>a+e.amount,0));
+ document.getElementById('lowStock').innerHTML=low.length?'<table><tr><th>Medicine</th><th>Qty</th><th>Status</th></tr>'+low.map(p=>`<tr><td>${p.name}</td><td>${p.qty}</td><td><span class="badge ${p.qty?'b-low':'b-out'}">${p.qty?'Reorder':'Out of stock'}</span></td></tr>`).join('')+'</table>':'<div class="empty">No low-stock medicines.</div>';
+ let recent=db.sales.slice(-6).reverse();document.getElementById('recentSales').innerHTML=recent.length?'<table><tr><th>Invoice</th><th>Customer</th><th>Total</th></tr>'+recent.map(s=>`<tr style="cursor:pointer" title="Click row to open in Sales Log" onclick="goToSaleInLog('${s.invoice}')"><td>${s.invoice}</td><td>${s.customer}</td><td>${money(s.total)}</td></tr>`).join('')+'</table>':'<div class="empty">No sales yet.</div>';
+ renderWelcomeBanner();renderOverallSummary();renderHealthTip();
+}
+function renderWelcomeBanner(){
+ const dateEl=document.getElementById('wbDate'); if(!dateEl) return;
+ const d=new Date();
+ dateEl.textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ document.getElementById('wbLocation').textContent=db.settings.address||db.settings.name||'';
+ const verseWrap=document.getElementById('wbVerseWrap'), verseSpan=document.getElementById('wbVerse');
+ if(verseWrap && verseSpan){
+  const set=db.settings||{};
+  if(set.showVerse!==false){
+   verseSpan.textContent=set.verseMode==='custom'?(set.verseText||''):getDailyVerse();
+   verseWrap.style.display=verseSpan.textContent?'':'none';
+  } else verseWrap.style.display='none';
+ }
+}
+function renderHealthTip(){
+ const el=document.getElementById('healthTipText'); if(!el) return;
+ el.textContent=getDailyHealthTip();
+}
+function computeOverallSummary(){
+ const products=db.products;
+ const items=products.length;
+ const units=products.reduce((a,p)=>a+Number(p.qty||0),0);
+ const stockCost=products.reduce((a,p)=>a+Number(p.buy||0)*Number(p.qty||0),0);
+ const wellStocked=products.filter(p=>Number(p.qty)>Number(p.reorder)).length;
+ const lowStock=products.filter(p=>Number(p.qty)>0&&Number(p.qty)<=Number(p.reorder)).length;
+ const outStock=products.filter(p=>Number(p.qty)===0).length;
+ const restockCost=products.filter(p=>Number(p.qty)<=Number(p.reorder)).reduce((a,p)=>{
+  const target=Number(p.reorder||0), need=Math.max(target-Number(p.qty||0),target?0:0);
+  return a+need*Number(p.buy||0);
+ },0);
+ const allSaleItems=db.sales.flatMap(s=>s.items||[]);
+ const soldUnits=allSaleItems.reduce((a,i)=>a+Number(i.qty||0),0);
+ const saleValue=db.sales.reduce((a,s)=>a+Number(s.total||0),0);
+ let grossProfit=0;
+ allSaleItems.forEach(i=>{const p=products.find(p=>p.id===i.id); if(p) grossProfit+=(Number(i.price||0)-Number(p.buy||0))*Number(i.qty||0);});
+ const totalExpenses=db.expenses.reduce((a,e)=>a+Number(e.amount||0),0);
+ const netProfit=grossProfit-totalExpenses;
+ const soldByProduct={};
+ allSaleItems.forEach(i=>{soldByProduct[i.id]=(soldByProduct[i.id]||0)+Number(i.qty||0);});
+ let topId=null,topQty=0;
+ Object.entries(soldByProduct).forEach(([id,qty])=>{if(qty>topQty){topQty=qty;topId=id;}});
+ const topProduct=topId!=null?products.find(p=>String(p.id)===String(topId)):null;
+ const t=today();
+ const revToday=db.sales.filter(s=>s.date===t).reduce((a,s)=>a+Number(s.total||0),0);
+ const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-6);
+ const weekAgoStr=weekAgo.toISOString().slice(0,10);
+ const revWeek=db.sales.filter(s=>s.date>=weekAgoStr).reduce((a,s)=>a+Number(s.total||0),0);
+ const monthPrefix=t.slice(0,7);
+ const monthSales=db.sales.filter(s=>s.date&&s.date.slice(0,7)===monthPrefix);
+ const revMonth=monthSales.reduce((a,s)=>a+Number(s.total||0),0);
+ const monthCustomers=new Set(monthSales.map(s=>s.customer||'Walk-in')).size;
+ return {items,units,stockCost,wellStocked,lowStock,outStock,restockCost,soldUnits,saleValue,grossProfit,totalExpenses,netProfit,topProduct,topQty,revToday,revWeek,revMonth,monthInvoices:monthSales.length,monthCustomers};
+}
+function renderOverallSummary(){
+ const el=document.getElementById('summaryText'); if(!el) return;
+ const s=computeOverallSummary();
+ el.innerHTML=`
+<p>Your inventory holds <b>${s.items}</b> items with <b>${s.units}</b> units currently in stock, worth <b>${money(s.stockCost)}</b> at cost. Of those, <b class="green">${s.wellStocked}</b> are well stocked, <b class="amber">${s.lowStock}</b> are running low, and <b class="red">${s.outStock}</b> are out of stock — about <b>${money(s.restockCost)}</b> would be needed to restock everything flagged for reorder.</p>
+<p>So far you've sold <b>${s.soldUnits}</b> units for a total sale value of <b>${money(s.saleValue)}</b>, generating <b class="green">${money(s.grossProfit)}</b> in gross profit. After <b class="red">${money(s.totalExpenses)}</b> in recorded expenditure, net profit stands at <b class="${s.netProfit>=0?'green':'red'}">${money(s.netProfit)}</b>. ${s.topProduct?`Your top-selling item is <b>${s.topProduct.name}</b>, with ${s.topQty} units sold all-time.`:'No sales have been recorded yet, so there is no top-selling item.'}</p>
+<p>Revenue stands at <b>${money(s.revToday)}</b> today, <b>${money(s.revWeek)}</b> this week, and <b>${money(s.revMonth)}</b> this month, across <b>${s.monthInvoices}</b> invoices raised for <b>${s.monthCustomers}</b> customers.</p>`;
+}
+function toggleOverview(){
+ const body=document.getElementById('overviewBody'), btn=document.getElementById('overviewToggleBtn');
+ const collapsed=body.style.display==='none';
+ body.style.display=collapsed?'':'none';
+ btn.classList.toggle('collapsed',!collapsed);
+}
+function getSoldQty(productId){
+ return db.sales.reduce((sum,s)=>sum+s.items.filter(i=>i.id===productId).reduce((a,i)=>a+i.qty,0),0);
+}
+function renderInventory(){
+ const units=db.products.reduce((a,p)=>a+Number(p.qty||0),0), products=db.products.length, cats=new Set(db.products.map(p=>p.category).filter(Boolean)).size;
+ const low=db.products.filter(p=>Number(p.qty)>0&&Number(p.qty)<=Number(p.reorder)).length, out=db.products.filter(p=>Number(p.qty)===0).length;
+ const cost=db.products.reduce((a,p)=>a+Number(p.buy||0)*Number(p.qty||0),0), selling=db.products.reduce((a,p)=>a+Number(p.sell||0)*Number(p.qty||0),0), profit=selling-cost, max=Math.max(cost,selling,1);
+ document.getElementById('invReportUnits').textContent=units; document.getElementById('invReportProducts').textContent=products; document.getElementById('invReportLow').textContent=low; document.getElementById('invReportOut').textContent=out;
+ document.getElementById('invReportCost').textContent=money(cost); document.getElementById('invReportSelling').textContent=money(selling); document.getElementById('invReportProfit').textContent=money(profit); document.getElementById('invReportCategories').textContent=cats;
+ document.getElementById('invCostLabel').textContent=money(cost); document.getElementById('invSellingLabel').textContent=money(selling); document.getElementById('invCostBar').style.width=(cost/max*100)+'%'; document.getElementById('invSellingBar').style.width=(selling/max*100)+'%';
+ let q=(document.getElementById('invSearch')?.value||'').toLowerCase();
+ let a=db.products.filter(p=>(String(p.id)+p.name+p.sku+p.category).toLowerCase().includes(q));
+ document.getElementById('inventoryTable').innerHTML='<div style="overflow:auto"><table style="min-width:1350px"><tr><th>Photo</th><th>ID</th><th>Description</th><th>Category</th><th>Cost<br>(GHS)</th><th>Price<br>(GHS)</th><th>Margin</th><th>In<br>Stock</th><th>Sold</th><th>Left</th><th>Status</th><th>Cost ×<br>In Stock</th><th>Selling<br>Price × In Stock</th><th>Potential<br>Profit</th><th>Action</th></tr>'+a.map(p=>{
+   const sold=getSoldQty(p.id), left=p.qty, margin=p.sell-p.buy, pct=p.buy?margin/p.buy*100:0, costStock=p.buy*p.qty, sellStock=p.sell*p.qty;
+   const status=p.qty===0?'Out of Stock':p.qty<=p.reorder?'Low Stock':'In Stock';
+   const actions=isManager()?`<button class="btn secondary" onclick="viewProduct(${p.id})">View</button> <button class="btn secondary" onclick="openProduct(${p.id})">Edit</button> <button class="btn danger" onclick="deleteProduct(${p.id})">Delete</button>`:`<button class="btn secondary" onclick="viewProduct(${p.id})">View</button>`;
+   return `<tr><td>${p.image?`<img class="thumb" src="${p.image}" alt="">`:'<span class="noimg">📷</span>'}</td><td>${p.id}</td><td><b>${p.name}</b><br><small>${p.sku||''}</small></td><td>${p.category||'-'}</td><td>${money(p.buy)}</td><td>${money(p.sell)}</td><td>${money(margin)}<br>(${pct.toFixed(0)}%)</td><td>${p.qty}</td><td>${sold}</td><td>${left}</td><td><span class="badge ${p.qty===0?'b-out':p.qty<=p.reorder?'b-low':'b-ok'}">${status}</span></td><td>${money(costStock)}</td><td>${money(sellStock)}</td><td>${money(sellStock-costStock)}</td><td>${actions}</td></tr>`;
+ }).join('')+'</table></div>';
+}
+function viewProduct(id){const p=db.products.find(x=>x.id===id);if(!p)return;const sold=getSoldQty(id);modal(`<h2>${p.image?`<img class="thumb" src="${p.image}" alt=""> `:''}${p.name}</h2><div class="grid3"><div class="card"><div class="label">IN STOCK</div><div class="metric">${p.qty}</div></div><div class="card"><div class="label">SOLD</div><div class="metric">${sold}</div></div><div class="card"><div class="label">STOCK VALUE</div><div class="metric">${money(p.buy*p.qty)}</div></div></div><table><tr><th>SKU</th><th>Category</th><th>Cost</th><th>Price</th><th>Margin</th><th>Expiry</th></tr><tr><td>${p.sku||'-'}</td><td>${p.category||'-'}</td><td>${money(p.buy)}</td><td>${money(p.sell)}</td><td>${money(p.sell-p.buy)}</td><td>${p.expiry||'-'}</td></tr></table><div style="text-align:right;margin-top:15px"><button class="secondary btn" onclick="closeModal()">Close</button></div>`)}
+function clearAllItems(){if(!isManager())return alert('🔒 This action is restricted to Managers.');if(confirm('Clear all inventory items? Sales history will be kept.')){db.products=[];save();renderAll()}}
+function restoreDefaultItems(){if(!isManager())return alert('🔒 This action is restricted to Managers.');if(confirm('Restore the default inventory items? This will replace current inventory.')){db.products=[{id:1,name:'Paracetamol 500mg',sku:'PAR500',category:'Analgesic',qty:120,reorder:20,buy:2.2,sell:4.5,expiry:'2027-05-30'},{id:2,name:'Amoxicillin 500mg',sku:'AMO500',category:'Antibiotic',qty:35,reorder:15,buy:4,sell:7.5,expiry:'2026-11-18'},{id:3,name:'Vitamin C 1000mg',sku:'VITC1000',category:'Supplement',qty:12,reorder:20,buy:5,sell:9,expiry:'2027-02-15'}];save();renderAll()}}
+function renderSaleProducts(){let s=document.getElementById('saleProduct');if(!s)return;s.innerHTML=db.products.filter(p=>p.qty>0).map(p=>`<option value="${p.id}">${p.name} — ${money(p.sell)} (${p.qty} left)</option>`).join('')}
+function addToCart(){let p=db.products.find(x=>x.id==document.getElementById('saleProduct').value),qty=+document.getElementById('saleQty').value;if(!p||qty<1)return;if(qty>p.qty)return alert('Not enough stock.');let x=cart.find(i=>i.id===p.id);if(x){if(x.qty+qty>p.qty)return alert('Not enough stock.');x.qty+=qty}else cart.push({id:p.id,name:p.name,price:p.sell,qty});renderCart()}
+function renderCart(){let el=document.getElementById('cartBox');if(!el)return;if(!cart.length){el.innerHTML='<div class="empty">Cart is empty.</div>';document.getElementById('cartTotal').textContent=money(0);return}el.innerHTML='<table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th></th></tr>'+cart.map((x,i)=>`<tr><td>${x.name}</td><td>${x.qty}</td><td>${money(x.price)}</td><td>${money(x.qty*x.price)}</td><td><button class="btn danger" onclick="cart.splice(${i},1);renderCart()">×</button></td></tr>`).join('')+'</table>';document.getElementById('cartTotal').textContent=money(cart.reduce((a,x)=>a+x.qty*x.price,0))}
+function logSale(){if(!cart.length)return alert('Add an item first.');let total=cart.reduce((a,x)=>a+x.qty*x.price,0),s={id:Date.now(),invoice:'INV-'+String(db.sales.length+1).padStart(5,'0'),date:today(),time:new Date().toLocaleTimeString(),customer:document.getElementById('saleCustomer').value||'Walk-in',items:cart.map(x=>({...x})),total,soldBy:(currentUser&&currentUser.username)||'',soldByName:(currentUser&&currentUser.name)||'Unknown'};cart.forEach(x=>{let p=db.products.find(p=>p.id===x.id);p.qty-=x.qty});db.sales.push(s);save();cart=[];renderAll();
+ if(document.getElementById('saleAutoPrint')?.checked){
+  const [paper,type]=(document.getElementById('saleReceiptFormat')?.value||'80mm:receipt').split(':');
+  printSale(s.invoice,type,paper);
+ }
+}
+function renderSales(){let el=document.getElementById('salesTable');el.innerHTML=db.sales.length?'<table><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Total</th><th></th></tr>'+db.sales.slice().reverse().map(s=>`<tr style="cursor:pointer" title="Click row to open in Sales Log" onclick="goToSaleInLog('${s.invoice}')"><td>${s.invoice}</td><td>${s.date}</td><td>${s.customer}</td><td>${money(s.total)}</td><td><button class="btn secondary" onclick="event.stopPropagation();viewSale('${s.invoice}')">View</button>
+<button class="btn secondary" onclick="event.stopPropagation();editSale('${s.invoice}')">Edit</button>
+<button class="btn danger" onclick="event.stopPropagation();deleteSale('${s.invoice}')">Delete</button>
+<button class="btn secondary" onclick="event.stopPropagation();printSale('${s.invoice}','receipt')">Receipt</button>
+<button class="btn secondary" onclick="event.stopPropagation();printSale('${s.invoice}','invoice')">Invoice</button></td></tr>`).join('')+'</table>':'<div class="empty">No sales recorded.</div>'}
+function renderExpenses(){let el=document.getElementById('expensesTable');el.innerHTML='<table><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr>'+db.expenses.slice().reverse().map(e=>`<tr><td>${e.date}</td><td>${e.desc}</td><td>${e.category}</td><td>${money(e.amount)}</td></tr>`).join('')+'</table>'}
+function renderCustomers(){let el=document.getElementById('customersTable');el.innerHTML='<table><tr><th>Name</th><th>Phone</th><th>Email</th></tr>'+db.customers.map(c=>`<tr><td>${c.name}</td><td>${c.phone||''}</td><td>${c.email||''}</td></tr>`).join('')+'</table>'}
+function renderReports(){
+let sales=db.sales.reduce((a,s)=>a+s.total,0),exp=db.expenses.reduce((a,e)=>a+e.amount,0),stock=db.products.reduce((a,p)=>a+p.qty*p.buy,0);
+document.getElementById('repSales').textContent=money(sales);document.getElementById('repExp').textContent=money(exp);document.getElementById('repProfit').textContent=money(sales-exp);document.getElementById('repStock').textContent=money(stock);
+let itemCount=db.products.reduce((a,p)=>a+Number(p.qty||0),0),cats=new Set(db.products.map(p=>p.category).filter(Boolean)).size,low=db.products.filter(p=>Number(p.qty)>0&&Number(p.qty)<=Number(p.reorder)).length,out=db.products.filter(p=>Number(p.qty)===0).length;
+document.getElementById('stockItemCount').textContent=itemCount;document.getElementById('stockCategoryCount').textContent=cats;document.getElementById('stockLowCount').textContent=low;document.getElementById('stockOutCount').textContent=out;
+let stockCost=db.products.reduce((a,p)=>a+Number(p.buy||0)*Number(p.qty||0),0),stockSelling=db.products.reduce((a,p)=>a+Number(p.sell||0)*Number(p.qty||0),0),potential=stockSelling-stockCost,max=Math.max(stockCost,stockSelling,1);
+document.getElementById('stockCost').textContent=money(stockCost);document.getElementById('stockSelling').textContent=money(stockSelling);document.getElementById('stockPotentialProfit').textContent=money(potential);document.getElementById('costBarLabel').textContent=money(stockCost);document.getElementById('sellingBarLabel').textContent=money(stockSelling);document.getElementById('costBar').style.width=(stockCost/max*100)+'%';document.getElementById('sellingBar').style.width=(stockSelling/max*100)+'%';
+document.getElementById('reportTable').innerHTML='<table><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Total</th></tr>'+db.sales.slice().reverse().map(s=>`<tr><td>${s.invoice}</td><td>${s.date}</td><td>${s.customer}</td><td>${money(s.total)}</td></tr>`).join('')+'</table>'
+renderSalesAnalysis();
+renderStaffPerformance();
+}
+function populateStaffPerfSelect(){
+ const sel=document.getElementById('staffPerfUser');
+ if(!sel) return;
+ const prev=sel.value;
+ sel.innerHTML='<option value="">All Staff</option>'+(db.users||[]).map(u=>`<option value="${u.username}">${u.name||u.username} (${u.role==='manager'?'Manager':'Sales'})</option>`).join('');
+ if(prev && [...sel.options].some(o=>o.value===prev)) sel.value=prev;
+}
+function getStaffPerfFiltered(){
+ const staff=document.getElementById('staffPerfUser')?.value||'';
+ const from=document.getElementById('staffPerfFrom')?.value||'';
+ const to=document.getElementById('staffPerfTo')?.value||'';
+ return db.sales.filter(s=>{
+  if(staff && String(s.soldBy||'').toLowerCase()!==staff.toLowerCase()) return false;
+  if(from && s.date<from) return false;
+  if(to && s.date>to) return false;
+  return true;
+ });
+}
+function clearStaffPerformanceFilter(){
+ ['staffPerfFrom','staffPerfTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+ const sel=document.getElementById('staffPerfUser'); if(sel) sel.value='';
+ renderStaffPerformance();
+}
+function renderStaffPerformance(){
+ if(!document.getElementById('spCount')) return;
+ populateStaffPerfSelect();
+ const sales=getStaffPerfFiltered();
+ const revenue=sales.reduce((a,s)=>a+Number(s.total||0),0);
+ const units=sales.reduce((a,s)=>a+(s.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+ const avg=sales.length?revenue/sales.length:0;
+ document.getElementById('spCount').textContent=sales.length;
+ document.getElementById('spRevenue').textContent=money(revenue);
+ document.getElementById('spUnits').textContent=units;
+ document.getElementById('spAvg').textContent=money(avg);
+ const box=document.getElementById('staffPerfTable');
+ if(!box) return;
+ if(!sales.length){ box.innerHTML='<div class="empty">No sales match this staff member / period.</div>'; return; }
+ box.innerHTML='<table><tr><th>Staff</th><th>Invoice</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th></tr>'+
+  sales.slice().reverse().map(s=>`<tr><td>${s.soldByName||'Unassigned'}</td><td>${s.invoice}</td><td>${s.date}</td><td>${s.customer||'Walk-in'}</td><td>${(s.items||[]).reduce((a,i)=>a+Number(i.qty||0),0)}</td><td>${money(s.total)}</td></tr>`).join('')+
+  '</table>';
+}
+function printStaffPerformance(){
+ const sales=getStaffPerfFiltered();
+ const revenue=sales.reduce((a,s)=>a+Number(s.total||0),0);
+ const units=sales.reduce((a,s)=>a+(s.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+ const staffSel=document.getElementById('staffPerfUser');
+ const staffLabel=staffSel && staffSel.value ? staffSel.options[staffSel.selectedIndex].textContent : 'All Staff';
+ const from=document.getElementById('staffPerfFrom')?.value||'All dates';
+ const to=document.getElementById('staffPerfTo')?.value||'All dates';
+ document.getElementById('printArea').innerHTML=`<div class="print-a4">${printHeaderHTML()}<hr><h2 class="center">STAFF PERFORMANCE REPORT</h2>
+  <p><b>Staff:</b> ${staffLabel}<br><b>Period:</b> ${from} to ${to}<br><b>Generated:</b> ${today()}</p>
+  <table><tr><th>Metric</th><th>Value</th></tr>
+   <tr><td>Transactions</td><td>${sales.length}</td></tr>
+   <tr><td>Revenue</td><td>${money(revenue)}</td></tr>
+   <tr><td>Units Sold</td><td>${units}</td></tr>
+   <tr><td>Avg Sale Value</td><td>${money(sales.length?revenue/sales.length:0)}</td></tr>
+  </table>
+  <h3>Transactions</h3>
+  <table><tr><th>Staff</th><th>Invoice</th><th>Date</th><th>Customer</th><th>Total</th></tr>${sales.map(s=>`<tr><td>${s.soldByName||'Unassigned'}</td><td>${s.invoice}</td><td>${s.date}</td><td>${s.customer||'Walk-in'}</td><td>${money(s.total)}</td></tr>`).join('')||'<tr><td colspan="5">No data</td></tr>'}</table>
+  ${printStampHTML()}${printVerseHTML()}</div>`;
+ window.print();
+}
+function getSalesAnalysisFiltered(){
+ const from=document.getElementById('salesRepFrom')?.value||'';
+ const to=document.getElementById('salesRepTo')?.value||'';
+ return db.sales.filter(s=>{
+  if(from && s.date<from) return false;
+  if(to && s.date>to) return false;
+  return true;
+ });
+}
+function clearSalesAnalysisFilter(){
+ ['salesRepFrom','salesRepTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+ renderSalesAnalysis();
+}
+function computeSalesAnalysis(sales){
+ let revenue=0,units=0,cost=0;
+ const byDate={},byProduct={},byCustomer={};
+ sales.forEach(s=>{
+  revenue+=Number(s.total||0);
+  const custKey=s.customer||'Walk-in';
+  if(!byCustomer[custKey]) byCustomer[custKey]={total:0,invoices:0};
+  byCustomer[custKey].total+=Number(s.total||0);
+  byCustomer[custKey].invoices+=1;
+  if(!byDate[s.date]) byDate[s.date]=0;
+  byDate[s.date]+=Number(s.total||0);
+  (s.items||[]).forEach(i=>{
+   units+=Number(i.qty||0);
+   const p=db.products.find(p=>p.id===i.id);
+   cost+=Number(i.qty||0)*Number(p?.buy||0);
+   byProduct[i.name]=(byProduct[i.name]||0)+Number(i.qty||0);
+  });
+ });
+ const profit=revenue-cost;
+ const margin=revenue?(profit/revenue*100):0;
+ const customers=Object.keys(byCustomer).length;
+ const trend=Object.entries(byDate).sort((a,b)=>a[0].localeCompare(b[0]));
+ const topProducts=Object.entries(byProduct).sort((a,b)=>b[1]-a[1]).slice(0,8);
+ const topCustomers=Object.entries(byCustomer).map(([name,v])=>({name,...v})).sort((a,b)=>b.total-a.total).slice(0,8);
+ return {revenue,units,cost,profit,margin,customers,count:sales.length,avg:sales.length?revenue/sales.length:0,trend,topProducts,topCustomers};
+}
+function renderSalesAnalysis(){
+ if(!document.getElementById('saRevenue')) return;
+ const sales=getSalesAnalysisFiltered();
+ const a=computeSalesAnalysis(sales);
+ document.getElementById('saRevenue').textContent=money(a.revenue);
+ document.getElementById('saCount').textContent=a.count;
+ document.getElementById('saUnits').textContent=a.units;
+ document.getElementById('saAvg').textContent=money(a.avg);
+ document.getElementById('saCost').textContent=money(a.cost);
+ document.getElementById('saProfit').textContent=money(a.profit);
+ document.getElementById('saMargin').textContent=a.margin.toFixed(1)+'%';
+ document.getElementById('saCustomers').textContent=a.customers;
+ document.getElementById('saTopCustomers').innerHTML=a.topCustomers.length?'<table><tr><th>Customer</th><th>Invoices</th><th>Total Spent</th></tr>'+
+  a.topCustomers.map(c=>`<tr><td>${c.name}</td><td>${c.invoices}</td><td>${money(c.total)}</td></tr>`).join('')+'</table>':'<div class="empty">No sales in this period.</div>';
+ if(window.Chart){
+  const trendCanvas=document.getElementById('salesTrendChart');
+  if(trendCanvas){
+   if(salesTrendChart) salesTrendChart.destroy();
+   salesTrendChart=new Chart(trendCanvas,{type:'line',
+    data:{labels:a.trend.map(x=>x[0]),datasets:[{label:'Revenue',data:a.trend.map(x=>x[1]),borderColor:'#1d67b1',backgroundColor:'#1d67b122',tension:.3,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});
+  }
+  const topCanvas=document.getElementById('salesAnalysisTopChart');
+  if(topCanvas){
+   if(salesAnalysisTopChart) salesAnalysisTopChart.destroy();
+   salesAnalysisTopChart=new Chart(topCanvas,{type:'bar',
+    data:{labels:a.topProducts.map(x=>x[0]),datasets:[{label:'Units sold',data:a.topProducts.map(x=>x[1]),backgroundColor:'#138a5b'}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',scales:{x:{beginAtZero:true,precision:0}}}});
+  }
+ }
+}
+function exportSalesAnalysisExcel(){
+ if(typeof XLSX==='undefined'){alert('The Excel library failed to load. Check your internet connection and try again.');return;}
+ const sales=getSalesAnalysisFiltered();
+ const a=computeSalesAnalysis(sales);
+ const wb=XLSX.utils.book_new();
+ const summary=[
+  {Metric:'Total Revenue',Value:a.revenue},{Metric:'Total Transactions',Value:a.count},
+  {Metric:'Units Sold',Value:a.units},{Metric:'Average Sale Value',Value:a.avg},
+  {Metric:'Cost of Goods Sold',Value:a.cost},{Metric:'Gross Profit',Value:a.profit},
+  {Metric:'Profit Margin (%)',Value:a.margin.toFixed(2)},{Metric:'Unique Customers',Value:a.customers}
+ ];
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(summary),'Summary');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(a.trend.map(([Date,Revenue])=>({Date,Revenue}))),'Daily Trend');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(a.topProducts.map(([Item,UnitsSold])=>({Item,UnitsSold}))),'Top Products');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(a.topCustomers.map(c=>({Customer:c.name,Invoices:c.invoices,TotalSpent:c.total}))),'Top Customers');
+ const rows=sales.flatMap(s=>(s.items&&s.items.length?s.items:[{name:'',qty:'',price:''}]).map(i=>({Date:s.date,Invoice:s.invoice,Customer:s.customer||'Walk-in',Item:i.name,Qty:i.qty,UnitPrice:i.price,LineTotal:(Number(i.qty)||0)*(Number(i.price)||0)})));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Line Items');
+ XLSX.writeFile(wb,'sales-analysis-'+today()+'.xlsx');
+}
+function printSalesAnalysisReport(){
+ const sales=getSalesAnalysisFiltered();
+ const a=computeSalesAnalysis(sales);
+ const from=document.getElementById('salesRepFrom')?.value||'All dates';
+ const to=document.getElementById('salesRepTo')?.value||'All dates';
+ document.getElementById('printArea').innerHTML=`<div class="print-a4">${printHeaderHTML()}<hr><h2 class="center">TOTAL SALES REPORT &amp; ANALYSIS</h2>
+  <p><b>Period:</b> ${from} to ${to}<br><b>Generated:</b> ${today()}</p>
+  <table><tr><th>Metric</th><th>Value</th></tr>
+   <tr><td>Total Revenue</td><td>${money(a.revenue)}</td></tr>
+   <tr><td>Total Transactions</td><td>${a.count}</td></tr>
+   <tr><td>Units Sold</td><td>${a.units}</td></tr>
+   <tr><td>Average Sale Value</td><td>${money(a.avg)}</td></tr>
+   <tr><td>Cost of Goods Sold</td><td>${money(a.cost)}</td></tr>
+   <tr><td>Gross Profit</td><td>${money(a.profit)}</td></tr>
+   <tr><td>Profit Margin</td><td>${a.margin.toFixed(1)}%</td></tr>
+   <tr><td>Unique Customers</td><td>${a.customers}</td></tr>
+  </table>
+  <h3>Top Selling Medicines</h3>
+  <table><tr><th>Item</th><th>Units Sold</th></tr>${a.topProducts.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td></tr>`).join('')||'<tr><td colspan="2">No data</td></tr>'}</table>
+  <h3>Top Customers</h3>
+  <table><tr><th>Customer</th><th>Invoices</th><th>Total Spent</th></tr>${a.topCustomers.map(c=>`<tr><td>${c.name}</td><td>${c.invoices}</td><td>${money(c.total)}</td></tr>`).join('')||'<tr><td colspan="3">No data</td></tr>'}</table>
+  <h3>Daily Revenue Trend</h3>
+  <table><tr><th>Date</th><th>Revenue</th></tr>${a.trend.map(x=>`<tr><td>${x[0]}</td><td>${money(x[1])}</td></tr>`).join('')||'<tr><td colspan="2">No data</td></tr>'}</table>
+  ${printStampHTML()}
+ </div>`;
+ window.print();
+}
+function openProduct(id){if(!isManager())return alert('🔒 Editing medicines is restricted to Managers.');let p=id?db.products.find(x=>x.id===id):{name:'',sku:'',category:'',qty:0,reorder:10,buy:0,sell:0,expiry:'',image:''};modal(`<h2>${id?'Edit':'Add'} Medicine</h2><div class="grid2"><div class="field"><label>Medicine Name</label><input id="mName" value="${p.name}"></div><div class="field"><label>SKU</label><input id="mSku" value="${p.sku}"></div><div class="field"><label>Category</label><input id="mCat" value="${p.category}"></div><div class="field"><label>Quantity</label><input id="mQty" type="number" value="${p.qty}"></div><div class="field"><label>Reorder Level</label><input id="mRe" type="number" value="${p.reorder}"></div><div class="field"><label>Buying Price</label><input id="mBuy" type="number" step=".01" value="${p.buy}"></div><div class="field"><label>Selling Price</label><input id="mSell" type="number" step=".01" value="${p.sell}"></div><div class="field"><label>Expiry Date</label><input id="mExp" type="date" value="${p.expiry||''}"></div><div class="field"><label>Item Picture</label><input id="mImage" type="file" accept="image/*" onchange="previewItemImage(event)"><div id="imagePreview" style="margin-top:8px">${p.image?`<img class="thumb" src="${p.image}" alt="Preview">`:'<span class="sub">No picture selected</span>'}</div></div></div><div style="text-align:right"><button class="secondary btn" onclick="closeModal()">Cancel</button> ${id?`<button class="danger btn" onclick="deleteProduct(${id})">Delete</button>`:''} <button class="primary btn" onclick="saveProduct(${id||0})">Save</button></div>`)}
+function previewItemImage(e){const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/'))return alert('Please select an image file.');if(f.size>2*1024*1024)return alert('Please choose an image smaller than 2 MB.');const r=new FileReader();r.onload=()=>{document.getElementById('imagePreview').innerHTML=`<img class="thumb" src="${r.result}" alt="Preview">`;document.getElementById('imagePreview').dataset.image=r.result};r.readAsDataURL(f)}
+function saveProduct(id){if(!isManager())return alert('🔒 Editing medicines is restricted to Managers.');const existing=id?db.products.find(p=>p.id===id):null;const picked=document.getElementById('imagePreview')?.dataset.image;let o={id:id||Date.now(),name:mName.value,sku:mSku.value,category:mCat.value,qty:+mQty.value,reorder:+mRe.value,buy:+mBuy.value,sell:+mSell.value,expiry:mExp.value,image:picked||existing?.image||''};if(id)db.products=db.products.map(p=>p.id===id?o:p);else db.products.push(o);save();closeModal();renderAll()}
+function deleteProduct(id){if(!isManager())return alert('🔒 Deleting medicines is restricted to Managers.');const p=db.products.find(x=>x.id===id);if(!p)return;if(!confirm(`Delete "${p.name}" from inventory? This cannot be undone.`))return;db.products=db.products.filter(x=>x.id!==id);save();closeModal();renderAll()}
+function printInventoryReport(){
+ const paper='A4';
+ const units=db.products.reduce((a,p)=>a+Number(p.qty||0),0), cats=new Set(db.products.map(p=>p.category).filter(Boolean)).size, low=db.products.filter(p=>Number(p.qty)>0&&Number(p.qty)<=Number(p.reorder)).length, out=db.products.filter(p=>Number(p.qty)===0).length;
+ const cost=db.products.reduce((a,p)=>a+Number(p.buy||0)*Number(p.qty||0),0), selling=db.products.reduce((a,p)=>a+Number(p.sell||0)*Number(p.qty||0),0), profit=selling-cost;
+ const rows=db.products.map(p=>`<tr><td>${p.name}</td><td>${p.category||'-'}</td><td>${p.qty}</td><td>${money(p.buy)}</td><td>${money(p.sell)}</td><td>${money(p.buy*p.qty)}</td><td>${money(p.sell*p.qty)}</td></tr>`).join('');
+ document.getElementById('printArea').innerHTML=`<div class="${paper==='80mm'?'print-thermal-80':paper==='58mm'?'print-thermal-58':paper==='A5'?'print-a5':paper==='Letter'?'print-letter':'print-a4'}">${printHeaderHTML()}<hr><h2 class="center">INVENTORY REPORT</h2><p><b>Date:</b> ${today()}<br><b>Total Units:</b> ${units} &nbsp; <b>Products:</b> ${db.products.length} &nbsp; <b>Categories:</b> ${cats}<br><b>Low Stock:</b> ${low} &nbsp; <b>Out of Stock:</b> ${out}</p><table><tr><th>Medicine</th><th>Category</th><th>Qty</th><th>Cost</th><th>Price</th><th>Cost Value</th><th>Selling Value</th></tr>${rows}</table><p><b>Stock-In Cost:</b> ${money(cost)}<br><b>Potential Selling Value:</b> ${money(selling)}<br><b>Potential Profit:</b> ${money(profit)}</p></div>`; window.print();
+}
+function openExpense(){modal(`<h2>Add Expense</h2><div class="field"><label>Description</label><input id="eDesc" placeholder="e.g. Electricity"></div><div class="grid2"><div class="field"><label>Category</label><input id="eCat" placeholder="Utilities"></div><div class="field"><label>Amount</label><input id="eAmt" type="number" step=".01"></div></div><div class="autoprint-row"><label class="autoprint-check"><input id="expAutoPrint" type="checkbox" checked> Generate &amp; print receipt after logging</label><select id="expReceiptFormat"><option value="80mm">80mm Receipt (Thermal)</option><option value="58mm">58mm Receipt (Thermal)</option><option value="A5">A5 Invoice</option><option value="A4">A4 Invoice</option></select></div><div style="text-align:right"><button class="secondary btn" onclick="closeModal()">Cancel</button> <button class="success btn" onclick="logExpense()">+ Add to log</button></div>`)}
+function saveExpense(){db.expenses.push({date:today(),desc:eDesc.value,category:eCat.value,amount:+eAmt.value});save();closeModal();renderAll()}
+function logExpense(){
+ const e={date:today(),time:new Date().toLocaleTimeString(),desc:eDesc.value,category:eCat.value,amount:+eAmt.value};
+ db.expenses.push(e);save();closeModal();renderAll();
+ if(document.getElementById('expAutoPrint')?.checked){
+  const paper=document.getElementById('expReceiptFormat')?.value||'80mm';
+  printExpenseReceipt(e,paper);
+ }
+}
+function printExpenseReceipt(e,paper){
+ const cls={'80mm':'print-thermal-80','58mm':'print-thermal-58','A4':'print-a4','A5':'print-a5','Letter':'print-letter'}[paper]||'print-thermal-80';
+ document.getElementById('printArea').innerHTML=`
+  <div class="${cls}">
+   <div class="print-center">${printHeaderHTML()}
+   <div class="print-line"></div><b>EXPENSE RECEIPT</b><div class="print-line"></div></div>
+   <div><b>Date:</b> ${e.date} ${e.time||''}</div>
+   <div><b>Description:</b> ${e.desc||'-'}</div>
+   <div><b>Category:</b> ${e.category||'-'}</div>
+   <div class="print-line"></div>
+   <div class="print-row print-total"><span>AMOUNT</span><span>${money(e.amount)}</span></div>
+   <div class="print-center" style="margin-top:10px">Recorded expense entry.</div>
+   ${printStampHTML()}
+  </div>`;
+ window.print();
+}
+function openCustomer(){modal(`<h2>Add Customer</h2><div class="field"><label>Name</label><input id="cName"></div><div class="grid2"><div class="field"><label>Phone</label><input id="cPhone"></div><div class="field"><label>Email</label><input id="cEmail"></div></div><div style="text-align:right"><button class="secondary btn" onclick="closeModal()">Cancel</button> <button class="primary btn" onclick="saveCustomer()">Save</button></div>`)}
+function saveCustomer(){db.customers.push({name:cName.value,phone:cPhone.value,email:cEmail.value});save();closeModal();renderAll()}
+function modal(s){modalEl=document.getElementById('modal');document.getElementById('modalBox').innerHTML=s;modalEl.classList.add('show')}function closeModal(){document.getElementById('modal').classList.remove('show')}
+function printDoc(s,mode){let set=db.settings;let title=mode==='invoice'?'INVOICE':'SALES RECEIPT';document.getElementById('printArea').innerHTML=`<div class="receipt"><h1>${set.name||'Pharmacy'}</h1><div class="center">${set.address||''}<br>${set.phone||''}</div><hr><h2 class="center">${title}</h2><p><b>${mode==='invoice'?'Invoice':'Receipt'} No:</b> ${s.invoice}<br><b>Date:</b> ${s.date} ${s.time||''}<br><b>Customer:</b> ${s.customer}</p><table><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr>${s.items.map(x=>`<tr><td>${x.name}</td><td>${x.qty}</td><td>${money(x.price)}</td><td>${money(x.qty*x.price)}</td></tr>`).join('')}</table><div class="total">TOTAL: ${money(s.total)}</div><p class="center">Thank you for your business.</p></div>`;window.print()}
+function loadSettings(){
+ if(!document.getElementById('setName'))return;
+ setName.value=db.settings.name;setPhone.value=db.settings.phone;setAddress.value=db.settings.address;
+ if(document.getElementById('setEmail')) setEmail.value=db.settings.email||'';
+ if(document.getElementById('acctUser')) acctUser.value=(currentUser&&currentUser.username)||'admin';
+ renderUsers();
+ const logoBox=document.getElementById('logoPreview');
+ if(logoBox){
+  logoBox.innerHTML=db.settings.logo?`<img class="thumb" src="${db.settings.logo}" alt="Logo"> <button type="button" class="btn secondary" style="margin-left:8px" onclick="clearBrandImage('logo')">Remove</button>`:'<span class="sub">No logo uploaded</span>';
+  logoBox.dataset.image=db.settings.logo||'';
+ }
+ const stampBox=document.getElementById('stampPreview');
+ if(stampBox){
+  stampBox.innerHTML=db.settings.stamp?`<img class="thumb" src="${db.settings.stamp}" alt="Stamp"> <button type="button" class="btn secondary" style="margin-left:8px" onclick="clearBrandImage('stamp')">Remove</button>`:'<span class="sub">No stamp uploaded</span>';
+  stampBox.dataset.image=db.settings.stamp||'';
+ }
+ const sigBox=document.getElementById('signaturePreview');
+ if(sigBox){
+  sigBox.innerHTML=db.settings.signature?`<img class="thumb" src="${db.settings.signature}" alt="Signature"> <button type="button" class="btn secondary" style="margin-left:8px" onclick="clearBrandImage('signature')">Remove</button>`:'<span class="sub">No signature uploaded</span>';
+  sigBox.dataset.image=db.settings.signature||'';
+ }
+ if(document.getElementById('setSignatureName')) setSignatureName.value=db.settings.signatureName||'';
+ if(document.getElementById('setSignatureTitle')) setSignatureTitle.value=db.settings.signatureTitle||'';
+ if(document.getElementById('setShowVerse')) setShowVerse.checked=db.settings.showVerse!==false;
+ if(document.getElementById('setVerseMode')) setVerseMode.value=db.settings.verseMode||'daily';
+ if(document.getElementById('setVerseText')) setVerseText.value=db.settings.verseText||'';
+ toggleVerseMode();
+}
+function toggleVerseMode(){
+ const mode=document.getElementById('setVerseMode')?.value||'daily';
+ const todayField=document.getElementById('verseTodayField'), textField=document.getElementById('verseTextField');
+ if(todayField) todayField.style.display=mode==='daily'?'':'none';
+ if(textField) textField.style.display=mode==='custom'?'':'none';
+ const preview=document.getElementById('verseTodayPreview');
+ if(preview) preview.textContent=getDailyVerse();
+}
+function saveSettings(){
+ const logoBox=document.getElementById('logoPreview'), stampBox=document.getElementById('stampPreview'), sigBox=document.getElementById('signaturePreview');
+ db.settings={
+  name:setName.value,phone:setPhone.value,email:document.getElementById('setEmail')?.value||'',address:setAddress.value,
+  logo:logoBox?(logoBox.dataset.image||''):(db.settings.logo||''),
+  stamp:stampBox?(stampBox.dataset.image||''):(db.settings.stamp||''),
+  signature:sigBox?(sigBox.dataset.image||''):(db.settings.signature||''),
+  signatureName:document.getElementById('setSignatureName')?.value||'',
+  signatureTitle:document.getElementById('setSignatureTitle')?.value||'',
+  showVerse:document.getElementById('setShowVerse')?setShowVerse.checked:(db.settings.showVerse!==false),
+  verseMode:document.getElementById('setVerseMode')?.value||(db.settings.verseMode||'daily'),
+  verseText:document.getElementById('setVerseText')?.value||''
+ };
+ save();alert('Settings saved.');
+}
+function saveAccount(){
+ const u=findUser(currentUser&&currentUser.username);
+ if(!u) return alert('Could not find your account.');
+ const newUser=(document.getElementById('acctUser')?.value||'').trim();
+ const curPass=document.getElementById('acctCurrentPass')?.value||'';
+ const newPass=document.getElementById('acctNewPass')?.value||'';
+ const confirmPass=document.getElementById('acctConfirmPass')?.value||'';
+ if(!newUser) return alert('Username cannot be empty.');
+ if(curPass!==u.password) return alert('Current password is incorrect.');
+ if(newPass || confirmPass){
+  if(newPass.length<4) return alert('New password must be at least 4 characters.');
+  if(newPass!==confirmPass) return alert('New password and confirmation do not match.');
+ }
+ if(newUser.toLowerCase()!==u.username.toLowerCase() && findUser(newUser)) return alert('That username is already taken.');
+ u.username=newUser; if(newPass) u.password=newPass;
+ save();
+ sessionStorage.setItem('pt_user',JSON.stringify({username:u.username}));
+ showApp(u);
+ document.getElementById('acctCurrentPass').value='';
+ document.getElementById('acctNewPass').value='';
+ document.getElementById('acctConfirmPass').value='';
+ alert('Login details updated.');
+}
+function renderUsers(){
+ const box=document.getElementById('usersTable');
+ if(!box) return;
+ box.innerHTML='<table><tr><th>Name</th><th>Username</th><th>Role</th><th>Action</th></tr>'+(db.users||[]).map(u=>{
+  const roleBadge=u.role==='manager'?'<span class="badge b-ok">Manager</span>':'<span class="badge" style="background:#eaf3fc;color:var(--blue)">Sales Personnel</span>';
+  const isSelf=currentUser && u.username.toLowerCase()===currentUser.username.toLowerCase();
+  return `<tr><td>${u.name||'-'}${isSelf?' <small class="sub">(you)</small>':''}</td><td>${u.username}</td><td>${roleBadge}</td><td><button class="btn secondary" onclick="openUserModal(${u.id})">Edit</button> <button class="btn danger" onclick="deleteUser(${u.id})">Delete</button></td></tr>`;
+ }).join('')+'</table>';
+}
+function openUserModal(id){
+ const u=id?db.users.find(x=>x.id===id):{name:'',username:'',password:'',role:'sales'};
+ modal(`<h2>${id?'Edit':'Add'} Staff Account</h2>
+ <div class="field"><label>Full Name</label><input id="uName" value="${u.name||''}"></div>
+ <div class="grid2"><div class="field"><label>Username</label><input id="uUsername" value="${u.username||''}"></div>
+ <div class="field"><label>Role</label><select id="uRole"><option value="sales" ${u.role==='sales'?'selected':''}>Sales Personnel</option><option value="manager" ${u.role==='manager'?'selected':''}>Manager</option></select></div></div>
+ <div class="field"><label>${id?'New Password (leave blank to keep current)':'Password'}</label><input id="uPassword" type="password" autocomplete="new-password"></div>
+ <div style="text-align:right"><button class="secondary btn" onclick="closeModal()">Cancel</button> <button class="primary btn" onclick="saveUser(${id||0})">Save</button></div>`);
+}
+function saveUser(id){
+ const name=(document.getElementById('uName')?.value||'').trim();
+ const username=(document.getElementById('uUsername')?.value||'').trim();
+ const role=document.getElementById('uRole')?.value||'sales';
+ const password=document.getElementById('uPassword')?.value||'';
+ if(!name) return alert('Please enter a full name.');
+ if(!username) return alert('Please enter a username.');
+ const existing=id?db.users.find(x=>x.id===id):null;
+ const clash=findUser(username);
+ if(clash && (!existing || clash.id!==existing.id)) return alert('That username is already taken.');
+ if(!existing && !password) return alert('Please set a password for the new account.');
+ if(existing && role!=='manager' && existing.role==='manager' && managerCount()<=1) return alert('You must keep at least one Manager account.');
+ if(existing){
+  existing.name=name; existing.username=username; existing.role=role;
+  if(password) existing.password=password;
+ } else {
+  db.users.push({id:Date.now(),name,username,role,password});
+ }
+ save();
+ closeModal();
+ if(currentUser && existing && existing.username.toLowerCase()===currentUser.username.toLowerCase()){
+  currentUser.role=role; currentUser.name=name; currentUser.username=username;
+  sessionStorage.setItem('pt_user',JSON.stringify({username}));
+ }
+ applyRolePermissions();
+ renderUsers();
+}
+function deleteUser(id){
+ const u=db.users.find(x=>x.id===id);
+ if(!u) return;
+ if(currentUser && u.username.toLowerCase()===currentUser.username.toLowerCase()) return alert("You can't delete the account you're currently logged in as.");
+ if(u.role==='manager' && managerCount()<=1) return alert('You must keep at least one Manager account.');
+ if(!confirm(`Delete staff account "${u.name||u.username}"?`)) return;
+ db.users=db.users.filter(x=>x.id!==id);
+ save();
+ renderUsers();
+}
+const BRAND_BOX_IDS={logo:'logoPreview',stamp:'stampPreview',signature:'signaturePreview'};
+const BRAND_INPUT_IDS={logo:'setLogoInput',stamp:'setStampInput',signature:'setSignatureInput'};
+function previewBrandImage(e,type){
+ const f=e.target.files?.[0]; if(!f) return;
+ if(!f.type.startsWith('image/')) return alert('Please select an image file.');
+ if(f.size>2*1024*1024) return alert('Please choose an image smaller than 2 MB.');
+ const r=new FileReader();
+ r.onload=()=>{
+  const box=document.getElementById(BRAND_BOX_IDS[type]||'logoPreview');
+  box.innerHTML=`<img class="thumb" src="${r.result}" alt="Preview"> <button type="button" class="btn secondary" style="margin-left:8px" onclick="clearBrandImage('${type}')">Remove</button>`;
+  box.dataset.image=r.result;
+ };
+ r.readAsDataURL(f);
+}
+function clearBrandImage(type){
+ const box=document.getElementById(BRAND_BOX_IDS[type]||'logoPreview');
+ box.innerHTML='<span class="sub">No image selected</span>';
+ box.dataset.image='';
+ const input=document.getElementById(BRAND_INPUT_IDS[type]||'setLogoInput');
+ if(input) input.value='';
+}
+function resetData(){if(confirm('Reset all data to the demo data?')){localStorage.removeItem(KEY);location.reload()}}
+function clearAllData(){
+ if(!confirm('This will PERMANENTLY delete all products, sales, expenses and customers. Your settings, branding and login will be kept. This cannot be undone.\n\nContinue?')) return;
+ if(!confirm('Are you absolutely sure? This is your last chance to cancel.')) return;
+ db.products=[];db.sales=[];db.expenses=[];db.customers=[];
+ cart=[];
+ save();
+ renderAll();
+ alert('All data has been cleared. Settings, branding and login were kept.');
+}
+function exportBackup(){
+ const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='pharmatrack-backup-'+today()+'.json';
+ document.body.appendChild(a);a.click();a.remove();
+ URL.revokeObjectURL(a.href);
+}
+function importBackupFile(e){
+ const f=e.target.files?.[0]; if(!f) return;
+ const r=new FileReader();
+ r.onload=()=>{
+  try{
+   const data=JSON.parse(r.result);
+   if(!data||!Array.isArray(data.products)) throw new Error('This does not look like a PharmaTrack backup file.');
+   if(!confirm('Import this backup? This will replace ALL current data (inventory, sales, expenses, customers and settings).')) return;
+   db=data; save(); renderAll(); alert('Backup imported successfully.');
+  }catch(err){alert('Could not import backup: '+err.message);}
+ };
+ r.readAsText(f);
+ e.target.value='';
+}
+function exportExcel(){
+ if(typeof XLSX==='undefined'){alert('The Excel library failed to load. Check your internet connection and try again.');return;}
+ const wb=XLSX.utils.book_new();
+ const prod=db.products.map(p=>({ID:p.id,Name:p.name,SKU:p.sku,Category:p.category,Qty:p.qty,Reorder:p.reorder,Buy:p.buy,Sell:p.sell,Expiry:p.expiry}));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(prod),'Products');
+ const sales=db.sales.flatMap(s=>(s.items&&s.items.length?s.items:[{name:'',qty:'',price:''}]).map(i=>({Invoice:s.invoice,Date:s.date,Time:s.time||'',Customer:s.customer||'Walk-in',Item:i.name,Qty:i.qty,UnitPrice:i.price,LineTotal:(Number(i.qty)||0)*(Number(i.price)||0),SaleTotal:s.total})));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sales),'Sales');
+ const exp=db.expenses.map(e=>({Date:e.date,Description:e.desc,Category:e.category,Amount:e.amount}));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(exp),'Expenses');
+ const cust=db.customers.map(c=>({Name:c.name,Phone:c.phone,Email:c.email}));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cust),'Customers');
+ XLSX.writeFile(wb,'pharmatrack-export-'+today()+'.xlsx');
+}
+function importExcelFile(e){
+ const f=e.target.files?.[0]; if(!f) return;
+ if(typeof XLSX==='undefined'){alert('The Excel library failed to load. Check your internet connection and try again.');e.target.value='';return;}
+ const r=new FileReader();
+ r.onload=(ev)=>{
+  try{
+   const wb=XLSX.read(ev.target.result,{type:'array'});
+   const hasProducts=!!wb.Sheets['Products'], hasCustomers=!!wb.Sheets['Customers'];
+   if(!hasProducts && !hasCustomers){alert('No "Products" or "Customers" sheet found in this file.');return;}
+   if(!confirm('Import this Excel file? This will replace your current Products and/or Customers list.')) return;
+   if(hasProducts){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets['Products']);
+    db.products=rows.map(r=>({id:Number(r.ID)||Date.now()+Math.floor(Math.random()*1000),name:r.Name||'',sku:r.SKU||'',category:r.Category||'',qty:Number(r.Qty)||0,reorder:Number(r.Reorder)||0,buy:Number(r.Buy)||0,sell:Number(r.Sell)||0,expiry:r.Expiry||'',image:''}));
+   }
+   if(hasCustomers){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets['Customers']);
+    db.customers=rows.map(r=>({name:r.Name||'',phone:r.Phone||'',email:r.Email||''}));
+   }
+   save();renderAll();alert('Excel data imported successfully.');
+  }catch(err){alert('Could not import file: '+err.message);}
+ };
+ r.readAsArrayBuffer(f);
+ e.target.value='';
+}
+renderAll();
+initAuth();
+function initAuth(){
+ const raw=sessionStorage.getItem('pt_user');
+ if(raw){
+  try{
+   const saved=JSON.parse(raw);
+   const match=findUser(saved.username);
+   if(match){ showApp(match); return; }
+  }catch(e){}
+  sessionStorage.removeItem('pt_user');
+ }
+ document.getElementById('loginUser')?.focus();
+}
+function doLogin(e){
+ e.preventDefault();
+ const u=document.getElementById('loginUser').value.trim();
+ const p=document.getElementById('loginPass').value;
+ const errEl=document.getElementById('loginError');
+ const match=findUser(u);
+ if(match && p===match.password){
+  errEl.classList.remove('show');
+  sessionStorage.setItem('pt_user',JSON.stringify({username:match.username}));
+  showApp(match);
+ } else {
+  errEl.classList.add('show');
+ }
+ return false;
+}
+function showApp(user){
+ currentUser={username:user.username,role:user.role||'sales',name:user.name||user.username};
+ document.getElementById('loginScreen').style.display='none';
+ document.getElementById('appHeader').style.display='flex';
+ document.getElementById('appLayout').style.display='flex';
+ const roleLabel=currentUser.role==='manager'?'Manager':'Sales Personnel';
+ const wbName=document.getElementById('wbName'); if(wbName) wbName.textContent=currentUser.name+' ('+roleLabel+')';
+ const headerUser=document.getElementById('headerUserName'); if(headerUser) headerUser.textContent='👤 '+currentUser.name+' • '+roleLabel;
+ document.getElementById('qaFab')?.classList.add('show');
+ applyRolePermissions();
+ renderAll();
+}
+function doLogout(){
+ if(!confirm('Log out of PharmaTrack?')) return;
+ sessionStorage.removeItem('pt_user');
+ currentUser=null;
+ document.getElementById('loginScreen').style.display='flex';
+ document.getElementById('appHeader').style.display='none';
+ document.getElementById('appLayout').style.display='none';
+ const form=document.getElementById('loginForm'); if(form) form.reset();
+ document.getElementById('loginError')?.classList.remove('show');
+ document.getElementById('loginUser')?.focus();
+ closeQuickAccess();
+ document.getElementById('qaFab')?.classList.remove('show');
+}
+function openQuickAccess(){
+ document.getElementById('qaDrawer')?.classList.add('show');
+ document.getElementById('qaBackdrop')?.classList.add('show');
+ document.getElementById('qaFab')?.classList.add('qa-fab-hidden');
+}
+function closeQuickAccess(){
+ document.getElementById('qaDrawer')?.classList.remove('show');
+ document.getElementById('qaBackdrop')?.classList.remove('show');
+ document.getElementById('qaFab')?.classList.remove('qa-fab-hidden');
+}
+function quickAccessGo(page){
+ closeQuickAccess();
+ go(page);
+}
+function goToStaffPerformance(){
+ if(!isManager()){ closeQuickAccess(); alert('🔒 This section is restricted to Managers.'); return; }
+ closeQuickAccess();
+ go('reports');
+ setTimeout(()=>{ document.getElementById('staffPerfUser')?.scrollIntoView({behavior:'smooth',block:'center'}); },150);
+}
+</script>
+<div id="saleModal" class="modal" style="display:none">
+  <div class="modal-card">
+    <div class="title"><h2 id="saleModalTitle">Sale</h2><button class="btn" onclick="closeSaleModal()">✕</button></div>
+    <div id="saleModalBody"></div>
+  </div>
+</div>
+
+
+<div id="printPreviewModal" class="modal" style="display:none">
+  <div class="modal-card" style="width:min(900px,95vw);max-height:92vh;overflow:auto">
+    <div class="title">
+      <h2>Print Preview</h2>
+      <div>
+        <select id="previewPaperSize">
+          <option value="80mm">80mm Thermal</option>
+          <option value="58mm">58mm Thermal</option>
+          <option value="A4">A4</option>
+          <option value="A5">A5</option>
+          <option value="Letter">Letter</option>
+        </select>
+        <button class="primary" onclick="printPreviewNow()">Print / Save PDF</button>
+        <button class="btn" onclick="closePrintPreview()">Close</button>
+      </div>
+    </div>
+    <div id="printPreviewBody" style="background:#eee;padding:20px;display:flex;justify-content:center"></div>
+  </div>
+</div>
+
+<button id="qaFab" class="qa-fab no-print" onclick="openQuickAccess()" title="Quick Access"><span class="qa-fab-icon">⚡</span><span class="qa-fab-text">Quick Access</span></button>
+<div id="qaBackdrop" class="qa-backdrop no-print" onclick="closeQuickAccess()"></div>
+<div id="qaDrawer" class="qa-drawer no-print">
+  <div class="qa-drawer-header">⚡ Quick Access <button onclick="closeQuickAccess()">✕</button></div>
+  <div class="qa-grid">
+    <div class="qa-tile" onclick="quickAccessGo('inventory')"><div class="qa-icon" style="background:#2f6fed">📦</div><div class="qa-label">Products</div></div>
+    <div class="qa-tile" onclick="quickAccessGo('customers')"><div class="qa-icon" style="background:#7c3aed">👤</div><div class="qa-label">Customers</div></div>
+    <div class="qa-tile" onclick="quickAccessGo('inventory')"><div class="qa-icon" style="background:#16a34a">🚚</div><div class="qa-label">Suppliers</div></div>
+    <div class="qa-tile" onclick="quickAccessGo('invoicesPage')"><div class="qa-icon" style="background:#0d9488">🧾</div><div class="qa-label">Invoice</div></div>
+    <div class="qa-tile" data-require-manager onclick="quickAccessGo('reports')"><div class="qa-icon" style="background:#f97316">📋</div><div class="qa-label">Stock Report</div></div>
+    <div class="qa-tile" data-require-manager onclick="quickAccessGo('reports')"><div class="qa-icon" style="background:#db2777">📊</div><div class="qa-label">Sales Report</div></div>
+    <div class="qa-tile" onclick="quickAccessGo('salesLog')"><div class="qa-icon" style="background:#4f46e5">📝</div><div class="qa-label">Sales Log</div></div>
+    <div class="qa-tile" onclick="quickAccessGo('expenses')"><div class="qa-icon" style="background:#dc2626">💳</div><div class="qa-label">Expenditure</div></div>
+    <div class="qa-tile" data-require-manager onclick="quickAccessGo('reports')"><div class="qa-icon" style="background:#15803d">📈</div><div class="qa-label">Profit Reports</div></div>
+    <div class="qa-tile" data-require-manager onclick="quickAccessGo('reports')"><div class="qa-icon" style="background:#0891b2">🎯</div><div class="qa-label">Performance Report</div></div>
+    <div class="qa-tile" data-require-manager onclick="goToStaffPerformance()"><div class="qa-icon" style="background:#7c3aed">👥</div><div class="qa-label">Staff Sales</div></div>
+  </div>
+</div>
+
+</body></html>
